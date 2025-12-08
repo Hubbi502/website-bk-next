@@ -1,65 +1,190 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, Calendar, Heart, Users } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import ArticleCard from "@/components/ArticleCard";
+import heroBanner from "@/assets/hero-banner.jpg";
 
-export default function Home() {
+async function getLatestArticles() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/articles`, {
+      cache: 'no-store',
+    });
+    
+    if (!response.ok) {
+      return [];
+    }
+    
+    const data = await response.json();
+    return data.success ? data.data.slice(0, 3) : [];
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    return [];
+  }
+}
+
+const Index = async () => {
+  const latestArticles = await getLatestArticles();
+  
+  const features = [
+    {
+      icon: BookOpen,
+      title: "Artikel Informatif",
+      description: "Akses berbagai artikel tentang pengembangan diri, kesehatan mental, dan panduan karir."
+    },
+    {
+      icon: Calendar,
+      title: "Penjadwalan Mudah",
+      description: "Pesan sesi konseling dengan konselor pilihan Anda sesuai keinginan Anda."
+    },
+    {
+      icon: Heart,
+      title: "Dukungan Kesehatan Mental",
+      description: "Dapatkan bimbingan dan dukungan profesional untuk kesejahteraan mental dan emosional Anda."
+    },
+    {
+      icon: Users,
+      title: "Konselor Ahli",
+      description: "Terhubung dengan konselor berpengalaman yang berdedikasi untuk membantu Anda sukses."
+    }
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 gradient-hero opacity-90"></div>
+        <div className="relative container mx-auto px-4 py-20 md:py-32">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="text-white animate-fade-in">
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                Selamat Datang di <span className="block">Sahabat BK</span>
+              </h1>
+              <p className="text-lg md:text-xl mb-8 text-white/90 leading-relaxed">
+                Sahabat terpercaya Anda dalam bimbingan dan konseling. Kami di sini untuk mendukung pertumbuhan pribadi Anda, 
+                kesehatan mental, dan perjalanan pengembangan karir melalui layanan konseling yang dapat diakses dan efektif.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link href={"/articles"}>
+                  <Button size="lg" variant="secondary" className="gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Jelajahi Artikel
+                  </Button>
+                </Link>
+                <Link href="/schedule">
+                  <Button size="lg" variant="outline" className="gap-2 bg-white/10 hover:bg-white/20 text-white border-white/30">
+                    <Calendar className="h-5 w-5" />
+                    Jadwalkan Sesi
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="animate-slide-up hidden md:block">
+              <img 
+                src={heroBanner.src} 
+                alt="Bimbingan dan Konseling" 
+                className="rounded-2xl shadow-elevated"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="py-16 md:py-24 bg-card">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Misi Kami</h2>
+            <p className="text-lg text-muted-foreground">
+              Sahabat BK berdedikasi untuk menyediakan layanan bimbingan dan konseling yang komprehensif 
+              yang memberdayakan siswa untuk mengatasi tantangan, menemukan potensi mereka, dan mencapai 
+              tujuan mereka di lingkungan yang mendukung dan pengertian.
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, index) => (
+              <Card 
+                key={index} 
+                className="text-center transition-all duration-300 hover:shadow-elevated animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CardHeader>
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <feature.icon className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">{feature.description}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Articles Section */}
+      {latestArticles.length > 0 && (
+        <section className="py-16 md:py-24 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Artikel Terbaru</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+                Baca artikel terbaru kami tentang pengembangan diri, kesehatan mental, dan panduan karir
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {latestArticles.map((article: any, index: number) => (
+                <div key={article.id} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <ArticleCard 
+                    id={String(article.id)}
+                    title={article.title}
+                    description={article.excerpt}
+                    category={article.category || "General"}
+                    readTime={article.readTime || "5 min read"}
+                    imageUrl={article.image}
+                    date={article.date}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Link href="/articles">
+                <Button variant="outline" size="lg" className="gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Lihat Semua Artikel
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* CTA Section */}
+      <section className="py-16 md:py-20 gradient-subtle">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Siap untuk Memulai?</h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Baik Anda memerlukan bimbingan tentang masalah pribadi, tantangan akademis, atau perencanaan karir, 
+            kami di sini untuk membantu Anda di setiap langkah.
           </p>
+          <Link href="/about">
+            <Button size="lg" className="gap-2">
+              Pelajari Lebih Lanjut Tentang Kami
+            </Button>
+          </Link>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
     </div>
   );
-}
+};
+
+export default Index;

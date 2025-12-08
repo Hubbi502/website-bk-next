@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// Model untuk Admin/Guru BK
+model Admin {
+  id        String      @id @default(cuid())
+  name      String
+  username  String   @unique
+  password  String   // Should be hashed in production
+  role      String   @default("Guru BK")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles  Article[]
+  visits    Visit[]
+
+  @@map("admins")
+}
+
+// Model untuk Murid/Student
+model Student {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // Should be hashed
+  class     String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments  Comment[]
+  visits    Visit[]
+
+  @@map("students")
+}
+
+// Model untuk Artikel
+model Article {
+  id        String      @id @default(cuid())
+  title     String
+  excerpt   String   @db.Text
+  content   String   @db.Text
+  image     String
+  category  String   @default("General")
+  readTime  String   @default("5 min read")
+  authorId  String
+  author    Admin    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments  Comment[]
+
+  @@index([authorId])
+  @@index([category])
+  @@map("articles")
+}
+
+// Model untuk Komentar Artikel
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // Fields untuk anonymous comments (jika tidak login)
+  name      String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([studentId])
+  @@map("comments")
+}
+
+// Model untuk Kunjungan Murid
+model Visit {
+  id          String      @id @default(cuid())
+  visitDate   DateTime
+  visitTime   String
+  reason      String   @db.Text
+  status      VisitStatus @default(PENDING)
+  notes       String?  @db.Text
+  approvedBy  String?
+  approver    Admin?   @relation(fields: [approvedBy], references: [id], onDelete: SetNull)
+  studentId   String?
+  student     Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // Fields untuk anonymous visits (jika tidak login)
+  studentName String?
+  class       String?
+  email       String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([approvedBy])
+  @@index([studentId])
+  @@index([status])
+  @@index([visitDate])
+  @@map("visits")
+}
+
+// Enum untuk status kunjungan
+enum VisitStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
