@@ -25,6 +25,8 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { ArticleManagement } from "@/components/dashboard/ArticleManagement";
 import { VisitManagement } from "@/components/dashboard/VisitManagement";
+import { AdminManagement } from "@/components/dashboard/AdminManagement";
+import { isSuperAdmin } from "@/lib/permissions";
 
 interface Article {
   id: number;
@@ -44,7 +46,7 @@ const Dashboard = () => {
   const router = useRouter();
   const { toast } = useToast();
   const [adminData, setAdminData] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "articles" | "visits">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "articles" | "visits" | "admins">("overview");
   const [articles, setArticles] = useState<Article[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
 
@@ -181,6 +183,10 @@ const Dashboard = () => {
           loadVisits={loadVisits}
           getStatusBadge={getStatusBadge}
         />
+      )}
+
+      {activeTab === "admins" && isSuperAdmin(adminData) && (
+        <AdminManagement currentAdminId={adminData.id} />
       )}
     </DashboardLayout>
   );

@@ -22,34 +22,47 @@ async function main() {
   // Hash password
   const hashedPassword = await bcrypt.hash("guru123", 10);
 
-  // Buat admin super admin
+  // Buat super admin
   const superAdmin = await prisma.admin.upsert({
-    where: { username: "super.admin" },
+    where: { username: "superadmin" },
     update: {},
     create: {
       name: "Super Admin",
-      username: "super.admin",
+      username: "superadmin",
       password: hashedPassword,
-      role: "Guru BK Senior",
+      role: "SUPER_ADMIN",
     },
   });
 
-  // Buat admin biasa
-  const admin = await prisma.admin.upsert({
-    where: { username: "admin" },
+  // Buat admin biasa 1
+  const admin1 = await prisma.admin.upsert({
+    where: { username: "admin1" },
     update: {},
     create: {
-      name: "Admin",
-      username: "admin",
+      name: "Admin Satu",
+      username: "admin1",
       password: hashedPassword,
-      role: "Guru BK",
+      role: "ADMIN",
+    },
+  });
+
+  // Buat admin biasa 2
+  const admin2 = await prisma.admin.upsert({
+    where: { username: "admin2" },
+    update: {},
+    create: {
+      name: "Admin Dua",
+      username: "admin2",
+      password: hashedPassword,
+      role: "ADMIN",
     },
   });
 
   console.log("✅ Seeding completed!");
   console.log("👤 Created admins:");
-  console.log(`   - ${superAdmin.name} (${superAdmin.username})`);
-  console.log(`   - ${admin.name} (${admin.username})`);
+  console.log(`   - ${superAdmin.name} (${superAdmin.username}) - ${superAdmin.role}`);
+  console.log(`   - ${admin1.name} (${admin1.username}) - ${admin1.role}`);
+  console.log(`   - ${admin2.name} (${admin2.username}) - ${admin2.role}`);
   console.log("\n🔑 Default password: guru123");
 }
 

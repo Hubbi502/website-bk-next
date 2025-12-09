@@ -6,10 +6,17 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider  = "postgresql"
+}
+
+// Enum untuk role admin
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
 }
 
 // Model untuk Admin/Guru BK
@@ -18,7 +25,7 @@ model Admin {
   name      String
   username  String   @unique
   password  String   // Should be hashed in production
-  role      String   @default("Guru BK")
+  role      AdminRole   @default(ADMIN)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -32,7 +39,7 @@ model Admin {
 model Student {
   id        String   @id @default(cuid())
   name      String
-  email     String   @unique
+  nisn      String   @unique
   password  String   // Should be hashed
   class     String
   phone     String?

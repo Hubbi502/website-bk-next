@@ -6,24 +6,24 @@ import bcrypt from "bcryptjs";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { nisn, password } = body;
 
     // Validation
-    if (!email || !password) {
+    if (!nisn || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { success: false, error: "NISN dan password harus diisi" },
         { status: 400 }
       );
     }
 
     // Find student
     const student = await prisma.student.findUnique({
-      where: { email },
+      where: { nisn },
     });
 
     if (!student) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { success: false, error: "NISN atau password tidak valid" },
         { status: 401 }
       );
     }
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { success: false, error: "NISN atau password tidak valid" },
         { status: 401 }
       );
     }
@@ -43,13 +43,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Login successful",
-      data: studentData,
+      message: "Login berhasil",
+      student: studentData,
     });
   } catch (error) {
     console.error("Error logging in student:", error);
     return NextResponse.json(
-      { error: "Failed to login" },
+      { success: false, error: "Terjadi kesalahan saat login" },
       { status: 500 }
     );
   }

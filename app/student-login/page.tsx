@@ -7,14 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, EyeOff, GraduationCap, Lock, User, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, User, Lock, GraduationCap, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-const Login = () => {
-  const [username, setUsername] = useState("");
+const StudentLogin = () => {
+  const [name, setName] = useState("");
+  const [nisn, setNisn] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -23,42 +25,49 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Kirim request ke API
-      const response = await fetch("/api/auth/login", {
+      const endpoint = isRegisterMode ? "/api/auth/student/register" : "/api/auth/student/login";
+      const body = isRegisterMode 
+        ? { name, nisn, password }
+        : { nisn, password };
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Login berhasil
         toast({
-          title: "Login Berhasil",
-          description: `Selamat datang, ${data.admin.name}! (${data.admin.role})`,
+          title: isRegisterMode ? "Registrasi Berhasil" : "Login Berhasil",
+          description: isRegisterMode 
+            ? "Akun Anda telah dibuat. Silakan login."
+            : `Selamat datang, ${data.student.name}!`,
         });
         
-        // Simpan data admin ke localStorage
-        localStorage.setItem("adminData", JSON.stringify(data.admin));
-        
-        // Redirect to dashboard
-        router.push("/dashboard");
+        if (!isRegisterMode) {
+          localStorage.setItem("studentData", JSON.stringify(data.student));
+          router.push("/schedule");
+        } else {
+          setIsRegisterMode(false);
+          setName("");
+          setPassword("");
+        }
       } else {
-        // Login gagal
         toast({
-          title: "Login Gagal",
-          description: data.error || "Username atau password tidak valid.",
+          title: isRegisterMode ? "Registrasi Gagal" : "Login Gagal",
+          description: data.error || "Terjadi kesalahan. Silakan coba lagi.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Auth error:", error);
       toast({
         title: "Error",
-        description: "Terjadi kesalahan saat login. Silakan coba lagi.",
+        description: "Terjadi kesalahan. Silakan coba lagi.",
         variant: "destructive",
       });
     } finally {
@@ -67,7 +76,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 p-4 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
@@ -83,43 +92,68 @@ const Login = () => {
         </Button>
       </Link>
 
-      <Card className="w-full max-w-md shadow-2xl relative z-10 border-0 bg-white">
+      <Card className="w-full max-w-md shadow-2xl relative z-10 border-0">
         <CardHeader className="space-y-4 pb-6">
           {/* Logo/Icon Section */}
           <div className="flex justify-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
               <GraduationCap className="w-10 h-10 text-white" />
             </div>
           </div>
           
           <div className="space-y-2">
             <CardTitle className="text-3xl font-bold text-center text-gray-900">
-              Portal Guru BK
+              {isRegisterMode ? "Registrasi Murid" : "Portal Murid"}
             </CardTitle>
             <CardDescription className="text-center text-base text-gray-700 font-medium">
-              Sistem Informasi Bimbingan dan Konseling
+              {isRegisterMode 
+                ? "Buat akun untuk mengakses layanan konseling"
+                : "Akses jadwal konseling dan layanan BK"
+              }
             </CardDescription>
           </div>
         </CardHeader>
         
-        <CardContent className="pb-8 text-gray-800">
+        <CardContent className="pb-8">
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Username Field */}
+            {/* Name Field - Only for Register */}
+            {isRegisterMode && (
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-semibold text-gray-800">
+                  Nama Lengkap
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Masukkan nama lengkap"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="pl-10 h-12 border-gray-300 focus:border-green-500 focus:ring-green-500 text-gray-900 font-medium placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* NISN Field */}
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-semibold text-gray-800">
-                Username
+              <Label htmlFor="nisn" className="text-sm font-semibold text-gray-800">
+                NISN
               </Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
-                  id="username"
+                  id="nisn"
                   type="text"
-                  placeholder="Masukkan username Anda"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Masukkan NISN Anda"
+                  value={nisn}
+                  onChange={(e) => setNisn(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-gray-900 font-medium placeholder:text-gray-400"
+                  className="pl-10 h-12 border-gray-300 focus:border-green-500 focus:ring-green-500 text-gray-900 font-medium placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -139,7 +173,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="pl-10 pr-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-gray-900 font-medium placeholder:text-gray-400"
+                  className="pl-10 pr-10 h-12 border-gray-300 focus:border-green-500 focus:ring-green-500 text-gray-900 font-medium placeholder:text-gray-400"
                 />
                 <button
                   type="button"
@@ -156,10 +190,10 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Login Button */}
+            {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-base"
+              className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-base"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -168,20 +202,25 @@ const Login = () => {
                   Memproses...
                 </div>
               ) : (
-                "Masuk ke Dashboard"
+                isRegisterMode ? "Daftar Akun" : "Masuk"
               )}
             </Button>
+
+
             
             {/* Info Section */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+            <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
               <div className="flex items-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-white text-xs font-bold">i</span>
                 </div>
                 <div className="text-sm text-gray-800">
-                  <p className="font-bold mb-1 text-gray-900">Informasi Login</p>
+                  <p className="font-bold mb-1 text-gray-900">Informasi Login Murid</p>
                   <p className="text-xs text-gray-700 leading-relaxed font-medium">
-                    Gunakan kredensial yang telah terdaftar dalam sistem untuk mengakses dashboard guru BK.
+                    {isRegisterMode 
+                      ? "Daftar dengan NISN dan password untuk mengakses layanan konseling."
+                      : "Gunakan NISN dan password yang telah didaftarkan untuk mengakses jadwal konseling."
+                    }
                   </p>
                 </div>
               </div>
@@ -198,4 +237,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default StudentLogin;

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/use-toast";
+import { isSuperAdmin } from "@/lib/permissions";
 import {
   LayoutDashboard,
   FileText,
@@ -15,14 +16,15 @@ import {
   Menu,
   X,
   Home,
-  Clock
+  Clock,
+  ShieldCheck
 } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
   adminData: any;
-  activeTab: "overview" | "articles" | "visits";
-  setActiveTab: (tab: "overview" | "articles" | "visits") => void;
+  activeTab: "overview" | "articles" | "visits" | "admins";
+  setActiveTab: (tab: "overview" | "articles" | "visits" | "admins") => void;
   articlesCount: number;
   pendingVisitsCount: number;
   currentPageTitle: string;
@@ -50,11 +52,19 @@ export function DashboardLayout({
     router.push("/login");
   };
 
-  const menuItems = [
+  const baseMenuItems = [
     { id: "overview", icon: LayoutDashboard, label: "Overview", badge: null },
     { id: "articles", icon: FileText, label: "Kelola Artikel", badge: articlesCount },
     { id: "visits", icon: Users, label: "Kunjungan Murid", badge: pendingVisitsCount },
   ];
+
+  // Add admin management menu only for super admin
+  const menuItems = isSuperAdmin(adminData)
+    ? [
+        ...baseMenuItems,
+        { id: "admins", icon: ShieldCheck, label: "Kelola Admin", badge: null },
+      ]
+    : baseMenuItems;
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -87,7 +97,9 @@ export function DashboardLayout({
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="font-semibold truncate">{adminData.name}</p>
-              <p className="text-xs text-slate-400 truncate">{adminData.role}</p>
+              <Badge variant={isSuperAdmin(adminData) ? "default" : "secondary"} className="text-xs mt-1">
+                {isSuperAdmin(adminData) ? "Super Admin" : "Admin"}
+              </Badge>
             </div>
           </div>
         </div>

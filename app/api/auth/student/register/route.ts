@@ -6,24 +6,24 @@ import bcrypt from "bcryptjs";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, class: studentClass, phone } = body;
+    const { name, nisn, password, class: studentClass, phone } = body;
 
     // Validation
-    if (!name || !email || !password || !studentClass) {
+    if (!name || !nisn || !password) {
       return NextResponse.json(
-        { error: "Name, email, password, and class are required" },
+        { success: false, error: "Nama, NISN, dan password harus diisi" },
         { status: 400 }
       );
     }
 
-    // Check if email already exists
+    // Check if NISN already exists
     const existingStudent = await prisma.student.findUnique({
-      where: { email },
+      where: { nisn },
     });
 
     if (existingStudent) {
       return NextResponse.json(
-        { error: "Email already registered" },
+        { success: false, error: "NISN sudah terdaftar" },
         { status: 409 }
       );
     }
@@ -35,15 +35,15 @@ export async function POST(request: Request) {
     const student = await prisma.student.create({
       data: {
         name,
-        email,
+        nisn,
         password: hashedPassword,
-        class: studentClass,
+        class: studentClass || "-",
         phone: phone || null,
       },
       select: {
         id: true,
         name: true,
-        email: true,
+        nisn: true,
         class: true,
         phone: true,
         createdAt: true,
@@ -53,15 +53,15 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         success: true, 
-        message: "Registration successful",
-        data: student 
+        message: "Registrasi berhasil",
+        student: student 
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error registering student:", error);
     return NextResponse.json(
-      { error: "Failed to register student" },
+      { success: false, error: "Gagal melakukan registrasi" },
       { status: 500 }
     );
   }

@@ -93,11 +93,13 @@ const Schedule = () => {
   ];
 
   const handleSubmitVisit = async () => {
-    // Validasi form
-    if (!studentData && (!visitForm.studentName || !visitForm.class)) {
-      toast.error("Gagal!", {
-        description: "Nama dan kelas harus diisi",
+    // Wajib login
+    if (!studentData) {
+      toast.error("Login Diperlukan", {
+        description: "Anda harus login terlebih dahulu untuk mengajukan kunjungan",
       });
+      setIsBookingOpen(false);
+      setShowAuthModal(true);
       return;
     }
 
@@ -318,7 +320,19 @@ const Schedule = () => {
             <h2 className="text-2xl font-semibold">Buat Jadwal Kunjungan</h2>
             <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
               <DialogTrigger asChild>
-                <Button size="lg" className="gap-2">
+                <Button 
+                  size="lg" 
+                  className="gap-2"
+                  onClick={(e) => {
+                    if (!studentData) {
+                      e.preventDefault();
+                      setShowAuthModal(true);
+                      toast.error("Login Diperlukan", {
+                        description: "Anda harus login terlebih dahulu untuk mengajukan kunjungan",
+                      });
+                    }
+                  }}
+                >
                   <Send className="h-4 w-4" />
                   Ajukan Kunjungan Baru
                 </Button>
