@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ interface Article {
   date: string;
 }
 
-const ArticleDetail = () => {
+const ArticleDetailContent = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [article, setArticle] = useState<Article | null>(null);
@@ -144,6 +144,21 @@ const ArticleDetail = () => {
         </div>
       </article>
     </div>
+  );
+};
+
+const ArticleDetail = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </div>
+    }>
+      <ArticleDetailContent />
+    </Suspense>
   );
 };
 
