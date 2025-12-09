@@ -160,12 +160,12 @@ export function DashboardOverview({
                     <div className="flex items-start gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-green-100 text-green-700 font-semibold">
-                          {visit.studentName.substring(0, 2).toUpperCase()}
+                          {visit.studentName ? visit.studentName.substring(0, 2).toUpperCase() : '??'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-semibold text-slate-900">{visit.studentName}</p>
-                        <p className="text-sm text-slate-600">{visit.class}</p>
+                        <p className="font-semibold text-slate-900">{visit.studentName || 'Nama tidak tersedia'}</p>
+                        <p className="text-sm text-slate-600">{visit.class || '-'}</p>
                         <div className="flex items-center gap-2 mt-2 text-sm text-slate-600">
                           <Clock className="h-4 w-4 text-green-600" />
                           <span className="font-medium text-green-700">{visit.visitTime} WIB</span>
@@ -243,12 +243,12 @@ export function DashboardOverview({
                 <div key={visit.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-blue-100 text-blue-600">
-                      {visit.studentName.substring(0, 2).toUpperCase()}
+                      {visit.studentName ? visit.studentName.substring(0, 2).toUpperCase() : '??'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{visit.studentName}</p>
-                    <p className="text-xs text-slate-500">{visit.class} • {visit.visitDate}</p>
+                    <p className="font-medium text-sm">{visit.studentName || 'Nama tidak tersedia'}</p>
+                    <p className="text-xs text-slate-500">{visit.class || '-'} • {visit.visitDate}</p>
                     <div className="mt-1">
                       {getStatusBadge(visit.status)}
                     </div>

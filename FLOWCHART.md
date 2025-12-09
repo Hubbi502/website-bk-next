@@ -1,156 +1,210 @@
 # Flowchart Aplikasi Sistem Bimbingan dan Konseling (Sahabat BK)
 
+## 1. Flowchart Siswa/Murid
+
 ```mermaid
 flowchart TD
-    Start([User Buka Website]) --> Home[Landing Page]
+    Start([Siswa Buka Website]) --> Home[Landing Page]
     
-    Home --> UserType{Tipe User}
+    Home --> Action{Pilih Menu}
+    Action -->|Lihat Artikel| Articles[Halaman Artikel]
+    Action -->|Jadwal Konseling| CheckLogin{Sudah Login?}
+    Action -->|Login| LoginPage[Halaman Login Siswa]
     
-    %% GUEST USER FLOW
-    UserType -->|Guest| GuestAction{Pilih Aksi}
-    GuestAction -->|Lihat Artikel| ViewArticles[Halaman Artikel]
-    GuestAction -->|Tentang| About[Halaman About]
-    GuestAction -->|Jadwal Konseling| GuestSchedule[Halaman Schedule - Terbatas]
-    GuestAction -->|Login| LoginChoice{Jenis Login?}
+    Articles --> ReadArticle[Baca Artikel]
+    ReadArticle --> CommentArticle[Komentar Artikel]
     
-    ViewArticles --> ArticleDetail[Detail Artikel]
-    ArticleDetail --> NeedLogin[Perlu Login untuk Comment]
+    CheckLogin -->|Belum| LoginPage
+    CheckLogin -->|Sudah| Schedule[Halaman Schedule]
     
-    GuestSchedule --> MustLoginFirst[Harus Login Dulu]
-    MustLoginFirst --> LoginChoice
+    LoginPage --> InputLogin["Input: NISN & Password"]
+    InputLogin --> SubmitLogin[Submit Login]
+    SubmitLogin --> ValidateLogin{Validasi}
+    ValidateLogin -->|Berhasil| Schedule
+    ValidateLogin -->|Gagal| LoginPage
     
-    %% LOGIN SELECTION
-    LoginChoice -->|Login Guru| TeacherLoginPage["Login Guru: /login"]
-    LoginChoice -->|Login Murid| StudentLoginPage["Login Murid: /student-login"]
+    Schedule --> ScheduleAction{Pilih Aksi}
+    ScheduleAction -->|Lihat Kunjungan| MyVisits[Daftar Kunjungan Saya]
+    ScheduleAction -->|Buat Baru| CreateVisit[Form Pengajuan]
     
-    %% TEACHER LOGIN FLOW
-    TeacherLoginPage --> TeacherInput[Input Username & Password]
-    TeacherInput --> TeacherAuth{Validasi Guru}
-    TeacherAuth -->|Invalid| TeacherError[Error: Kredensial Salah]
-    TeacherError --> TeacherInput
-    TeacherAuth -->|Valid| TeacherStorage[Save adminData localStorage]
-    TeacherStorage --> Dashboard[Dashboard Guru]
+    CreateVisit --> FillForm["Isi: Tanggal, Waktu, Alasan"]
+    FillForm --> SubmitVisit[Submit Pengajuan]
+    SubmitVisit --> Pending[Status: PENDING]
+    Pending --> WaitApproval[Tunggu Approval Guru]
     
-    %% DASHBOARD MENU
-    Dashboard --> DashMenu{Menu Dashboard}
-    DashMenu -->|Overview| DashOverview[Statistik & Ringkasan]
-    DashMenu -->|Artikel| ArticleManage[Manajemen Artikel]
-    DashMenu -->|Kunjungan| VisitManage[Manajemen Kunjungan]
-    DashMenu -->|Admin| AdminManage[Manajemen Admin]
+    MyVisits --> CheckStatus{Cek Status}
+    CheckStatus -->|PENDING| StatusPending[Menunggu Persetujuan]
+    CheckStatus -->|APPROVED| StatusApproved[Jadwal Dikonfirmasi]
+    CheckStatus -->|COMPLETED| StatusCompleted[Konseling Selesai]
+    CheckStatus -->|CANCELLED| StatusCancelled[Ditolak/Dibatalkan]
+    
+    StatusApproved --> Counseling[Datang Konseling]
+    Counseling --> Done([Selesai])
+    
+    %% STYLING
+    classDef studentClass fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    classDef processClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef statusClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    
+    class Home,Schedule,Articles studentClass
+    class LoginPage,CreateVisit,FillForm processClass
+    class Pending,StatusPending,StatusApproved,StatusCompleted,StatusCancelled statusClass
+```
+
+---
+
+## 2. Flowchart Admin (Guru BK)
+
+```mermaid
+flowchart TD
+    Start([Admin Login]) --> LoginPage[Halaman Login Admin]
+    LoginPage --> InputCred["Input: Username & Password"]
+    InputCred --> Validate{Validasi}
+    Validate -->|Gagal| LoginPage
+    Validate -->|Berhasil| Dashboard[Dashboard]
+    
+    Dashboard --> Menu{Pilih Menu}
+    
+    Menu -->|Overview| Overview[Statistik & Ringkasan]
+    Menu -->|Artikel| ArticleMenu[Manajemen Artikel]
+    Menu -->|Kunjungan| VisitMenu[Manajemen Kunjungan]
+    
+    ArticleMenu --> ArticleAction{Aksi}
+    ArticleAction -->|Create| CreateArticle[Buat Artikel Baru]
+    ArticleAction -->|Edit| EditArticle[Pilih Artikel yang Akan Diedit]
+    ArticleAction -->|Delete| DeleteArticle[Hapus Artikel]
+    
+    CreateArticle --> FormArticle["Isi: Judul, Konten, Gambar, Kategori"]
+    FormArticle --> SaveArticle[Simpan Artikel]
+    SaveArticle --> Published[Artikel Dipublikasi]
+    
+    EditArticle --> FormEditArticle["Ubah: Judul, Konten, Gambar, Kategori"]
+    FormEditArticle --> SaveEditArticle[Simpan Perubahan]
+    SaveEditArticle --> ArticleUpdated[Artikel Berhasil Diupdate]
+    
+    VisitMenu --> VisitList[List Semua Kunjungan]
+    VisitList --> FilterVisit{Filter Status}
+    
+    FilterVisit -->|PENDING| PendingList[Kunjungan Pending]
+    FilterVisit -->|APPROVED| ApprovedList[Kunjungan Approved]
+    FilterVisit -->|COMPLETED| CompletedList[Kunjungan Selesai]
+    
+    PendingList --> ReviewVisit[Review Pengajuan]
+    ReviewVisit --> Decision{Keputusan}
+    Decision -->|Approve| ApproveVisit[Setujui Kunjungan]
+    Decision -->|Reject| RejectVisit[Tolak Kunjungan]
+    Decision -->|Add Notes| AddNotes[Tambah Catatan]
+    
+    ApproveVisit --> NotifyStudent[Notifikasi Siswa]
+    RejectVisit --> NotifyReject[Notifikasi Penolakan]
+    
+    ApprovedList --> Counseling[Lakukan Konseling]
+    Counseling --> MarkComplete[Tandai Selesai]
+    MarkComplete --> AddResult[Tambah Catatan Hasil]
+    AddResult --> Completed([Selesai])
+    
+    %% STYLING
+    classDef adminClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef actionClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef statusClass fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    
+    class Dashboard,ArticleMenu,VisitMenu adminClass
+    class CreateArticle,EditArticle,ReviewVisit,ApproveVisit actionClass
+    class Published,ArticleUpdated,NotifyStudent,Completed statusClass
+```
+
+---
+
+## 3. Flowchart Super Admin
+
+```mermaid
+flowchart TD
+    Start([Super Admin Login]) --> LoginPage[Halaman Login Super Admin]
+    LoginPage --> InputCred["Input: Username & Password"]
+    InputCred --> Validate{Validasi}
+    Validate -->|Gagal| LoginPage
+    Validate -->|Berhasil| Dashboard[Dashboard Super Admin]
+    
+    Dashboard --> Menu{Pilih Menu}
+    
+    Menu -->|Overview| Overview[Statistik & Ringkasan]
+    Menu -->|Artikel| ArticleMenu[Manajemen Artikel]
+    Menu -->|Kunjungan| VisitMenu[Manajemen Kunjungan]
+    Menu -->|Admin| AdminMenu[Manajemen Admin]
     
     %% ARTICLE MANAGEMENT
-    ArticleManage --> ArticleAction{Aksi Artikel}
-    ArticleAction -->|Create| CreateArticle[Form Baru]
-    ArticleAction -->|Edit| EditArticle[Form Edit]
+    ArticleMenu --> ArticleAction{Aksi Artikel}
+    ArticleAction -->|Create| CreateArticle[Buat Artikel Baru]
+    ArticleAction -->|Edit| EditArticle[Edit Artikel]
     ArticleAction -->|Delete| DeleteArticle[Hapus Artikel]
-    CreateArticle --> UploadImage[Upload Gambar]
-    UploadImage --> SaveArticle[Simpan ke DB]
-    SaveArticle --> PublishArticle[Artikel Published]
+    
+    CreateArticle --> FormArticle["Isi: Judul, Konten, Gambar, Kategori"]
+    FormArticle --> SaveArticle[Simpan Artikel]
+    SaveArticle --> Published[Artikel Dipublikasi]
     
     %% VISIT MANAGEMENT
-    VisitManage --> VisitList[List Kunjungan]
-    VisitList --> FilterStatus{Filter Status}
-    FilterStatus -->|PENDING| PendingVisits[Kunjungan Pending]
-    FilterStatus -->|APPROVED| ApprovedVisits[Kunjungan Approved]
-    FilterStatus -->|COMPLETED| CompletedVisits[Kunjungan Selesai]
-    FilterStatus -->|CANCELLED| CancelledVisits[Kunjungan Batal]
+    VisitMenu --> VisitList[List Semua Kunjungan]
+    VisitList --> FilterVisit{Filter Status}
     
-    PendingVisits --> ReviewVisit{Review Pengajuan}
-    ReviewVisit -->|Approve| ApproveVisit[Status: APPROVED]
-    ReviewVisit -->|Reject| RejectVisit[Status: CANCELLED]
-    ReviewVisit -->|Add Notes| AddNotes[Tambah Catatan]
+    FilterVisit -->|PENDING| PendingList[Kunjungan Pending]
+    FilterVisit -->|APPROVED| ApprovedList[Kunjungan Approved]
+    FilterVisit -->|COMPLETED| CompletedList[Kunjungan Selesai]
     
-    ApproveVisit --> NotifyApprove[Notifikasi Murid - Approved]
-    RejectVisit --> NotifyReject[Notifikasi Murid - Rejected]
+    PendingList --> ReviewVisit[Review Pengajuan]
+    ReviewVisit --> Decision{Keputusan}
+    Decision -->|Approve| ApproveVisit[Setujui Kunjungan]
+    Decision -->|Reject| RejectVisit[Tolak Kunjungan]
+    Decision -->|Add Notes| AddNotes[Tambah Catatan]
     
-    ApprovedVisits --> CounselingSession[Sesi Konseling]
-    CounselingSession --> MarkComplete[Status: COMPLETED]
-    MarkComplete --> AddResultNotes[Tambah Catatan Hasil]
+    ApproveVisit --> NotifyStudent[Notifikasi Siswa]
+    RejectVisit --> NotifyReject[Notifikasi Penolakan]
     
-    %% ADMIN MANAGEMENT
-    AdminManage --> AdminAction{Aksi Admin}
+    ApprovedList --> Counseling[Lakukan Konseling]
+    Counseling --> MarkComplete[Tandai Selesai]
+    MarkComplete --> AddResult[Tambah Catatan Hasil]
+    
+    %% ADMIN MANAGEMENT (Exclusive to Super Admin)
+    AdminMenu --> AdminAction{Aksi Admin}
     AdminAction -->|Create| CreateAdmin[Buat Admin Baru]
-    AdminAction -->|Edit| EditAdmin[Edit Admin]
+    AdminAction -->|Edit| EditAdmin[Edit Data Admin]
     AdminAction -->|Delete| DeleteAdmin[Hapus Admin]
     AdminAction -->|Change Role| ChangeRole[Ubah Role Admin]
     
-    %% STUDENT LOGIN FLOW
-    StudentLoginPage --> StudentMode{Mode}
-    StudentMode -->|Login| StudentLoginForm[Form Login NISN]
-    StudentMode -->|Register| StudentRegForm[Form Registrasi]
+    CreateAdmin --> FormAdmin["Input: Nama, Username, Password, Role"]
+    FormAdmin --> SaveAdmin[Simpan Admin]
+    SaveAdmin --> AdminCreated[Admin Berhasil Dibuat]
     
-    StudentRegForm --> RegInput[Input: Nama, NISN, Password, Class, Phone]
-    RegInput --> RegValidate{Validasi}
-    RegValidate -->|Invalid| RegError[Error: NISN Sudah Ada]
-    RegError --> RegInput
-    RegValidate -->|Valid| RegSuccess[Registrasi Berhasil]
-    RegSuccess --> StudentLoginForm
+    EditAdmin --> UpdateAdmin[Update Data Admin]
+    UpdateAdmin --> AdminUpdated[Admin Berhasil Diupdate]
     
-    StudentLoginForm --> StudentInput[Input NISN & Password]
-    StudentInput --> StudentAuth{Validasi Murid}
-    StudentAuth -->|Invalid| StudentError[Error: Kredensial Salah]
-    StudentError --> StudentInput
-    StudentAuth -->|Valid| StudentStorage[Save studentData localStorage]
-    StudentStorage --> StudentRedirect[Redirect ke Schedule]
+    ChangeRole --> SelectRole{Pilih Role}
+    SelectRole -->|ADMIN| SetAdmin[Set Role: ADMIN]
+    SelectRole -->|SUPER_ADMIN| SetSuperAdmin[Set Role: SUPER_ADMIN]
     
-    %% STUDENT LOGGED IN FLOW
-    UserType -->|Student Logged In| StudentAction{Pilih Aksi}
-    StudentAction -->|Baca Artikel| StudentArticles[Artikel + Comment]
-    StudentAction -->|Jadwal Konseling| StudentSchedule[Halaman Schedule - Full]
-    StudentAction -->|Logout| StudentLogout[Hapus Session]
-    StudentLogout --> Home
+    SetAdmin --> RoleUpdated[Role Berhasil Diupdate]
+    SetSuperAdmin --> RoleUpdated
     
-    StudentArticles --> StudentArticleDetail[Detail + Add Comment]
-    StudentArticleDetail --> PostComment[Post Comment ke DB]
+    DeleteAdmin --> ConfirmDelete{Konfirmasi Hapus?}
+    ConfirmDelete -->|Ya| AdminDeleted[Admin Berhasil Dihapus]
+    ConfirmDelete -->|Tidak| AdminMenu
     
-    StudentSchedule --> ViewMyVisits[Lihat Kunjungan Saya]
-    StudentSchedule --> CreateNewVisit[Buat Pengajuan Baru]
-    
-    CreateNewVisit --> VisitForm[Form Kunjungan]
-    VisitForm --> SelectDateTime[Pilih Tanggal & Waktu]
-    SelectDateTime --> WriteReason[Tulis Alasan Konseling]
-    WriteReason --> SubmitVisit[Submit Pengajuan]
-    SubmitVisit --> VisitPending[Status: PENDING]
-    VisitPending --> WaitTeacher[Tunggu Approval Guru]
-    
-    ViewMyVisits --> MyVisitStatus{Status Kunjungan}
-    MyVisitStatus -->|PENDING| WaitingApproval[Menunggu Approval]
-    MyVisitStatus -->|APPROVED| ScheduleConfirmed[Jadwal Dikonfirmasi]
-    MyVisitStatus -->|COMPLETED| ConsultationDone[Konseling Selesai]
-    MyVisitStatus -->|CANCELLED| VisitCancelled[Dibatalkan]
-    
-    %% DATABASE & API LAYER
-    SaveArticle -.->|API| ArticleAPI[/api/articles]
-    PostComment -.->|API| CommentAPI[/api/articles/id/comments]
-    SubmitVisit -.->|API| VisitAPI[/api/visits]
-    ApproveVisit -.->|API| VisitUpdateAPI[/api/visits/id]
-    TeacherStorage -.->|API| AuthAPI[/api/auth/login]
-    StudentStorage -.->|API| StudentAuthAPI[/api/auth/student/login]
-    RegSuccess -.->|API| StudentRegAPI[/api/auth/student/register]
-    UploadImage -.->|API| UploadAPI[/api/upload]
-    CreateAdmin -.->|API| AdminAPI[/api/admins]
-    
-    ArticleAPI -.->|DB| DatabasePrisma[(PostgreSQL + Prisma)]
-    CommentAPI -.-> DatabasePrisma
-    VisitAPI -.-> DatabasePrisma
-    VisitUpdateAPI -.-> DatabasePrisma
-    AuthAPI -.-> DatabasePrisma
-    StudentAuthAPI -.-> DatabasePrisma
-    StudentRegAPI -.-> DatabasePrisma
-    AdminAPI -.-> DatabasePrisma
+    AdminCreated --> Done([Selesai])
+    AdminUpdated --> Done
+    RoleUpdated --> Done
+    AdminDeleted --> Done
+    AddResult --> Done
+    Published --> Done
     
     %% STYLING
-    classDef guestClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef studentClass fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    classDef teacherClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef apiClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef dbClass fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef superClass fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef adminClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef actionClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef successClass fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
     
-    class GuestAction,ViewArticles,About,GuestSchedule,LoginChoice guestClass
-    class StudentAction,StudentArticles,StudentSchedule,CreateNewVisit,VisitForm studentClass
-    class Dashboard,DashMenu,ArticleManage,VisitManage,AdminManage teacherClass
-    class ArticleAPI,CommentAPI,VisitAPI,AuthAPI,StudentAuthAPI,UploadAPI,AdminAPI apiClass
-    class DatabasePrisma dbClass
+    class Dashboard,AdminMenu superClass
+    class ArticleMenu,VisitMenu,CreateAdmin,EditAdmin adminClass
+    class CreateArticle,ReviewVisit,ApproveVisit,ChangeRole actionClass
+    class Published,NotifyStudent,AdminCreated,AdminUpdated,RoleUpdated,AdminDeleted successClass
 ```
 
 ---
@@ -158,33 +212,28 @@ flowchart TD
 ## Keterangan
 
 ### Status Kunjungan
-- **PENDING**: Pengajuan baru, menunggu review guru
-- **APPROVED**: Disetujui oleh guru, jadwal dikonfirmasi
-- **COMPLETED**: Sesi konseling telah selesai dilakukan
-- **CANCELLED**: Dibatalkan (oleh guru atau sistem)
+- **PENDING**: Menunggu review dari guru BK
+- **APPROVED**: Disetujui, jadwal dikonfirmasi
+- **COMPLETED**: Sesi konseling selesai
+- **CANCELLED**: Ditolak atau dibatalkan
 
 ### Role Admin
-- **ADMIN**: Guru BK biasa
-- **SUPER_ADMIN**: Guru BK Senior dengan akses penuh
+- **ADMIN**: Guru BK biasa - Akses kelola artikel & kunjungan
+- **SUPER_ADMIN**: Guru BK Senior - Akses penuh termasuk kelola admin
 
-### Fitur Berdasarkan User Type
-1. **Guest**: Lihat artikel (tanpa comment), info about, harus login untuk jadwal
-2. **Student**: Baca & comment artikel, buat jadwal konseling, lihat status kunjungan
-3. **Teacher/Admin**: Dashboard lengkap - CRUD artikel, approve kunjungan, kelola admin
+### Perbedaan Admin vs Super Admin
+| Fitur | Admin | Super Admin |
+|-------|-------|-------------|
+| Manajemen Artikel | ✅ | ✅ |
+| Manajemen Kunjungan | ✅ | ✅ |
+| Statistik & Overview | ✅ | ✅ |
+| Manajemen Admin | ❌ | ✅ |
+| Ubah Role Admin | ❌ | ✅ |
 
-### API Endpoints
-- `/api/auth/login` - Login guru
-- `/api/auth/student/login` - Login murid
-- `/api/auth/student/register` - Register murid
-- `/api/articles` - CRUD artikel
-- `/api/articles/[id]/comments` - Comment artikel
-- `/api/visits` - CRUD kunjungan
-- `/api/admins` - CRUD admin
-- `/api/upload` - Upload gambar
+### Alur Singkat
+1. **Siswa**: Login → Lihat Artikel → Buat Jadwal Konseling → Tunggu Approval → Konseling
+2. **Admin**: Login → Kelola Artikel → Review & Approve Kunjungan → Konseling → Buat Catatan
+3. **Super Admin**: Login → Semua Fitur Admin + Kelola Data Admin & Role
 
-### Database Schema (Prisma + PostgreSQL)
-- **Admin**: id, name, username, password, role
-- **Student**: id, name, nisn, password, class, phone
-- **Article**: id, title, content, image, category, authorId
-- **Comment**: id, content, articleId, studentId
-- **Visit**: id, visitDate, visitTime, reason, status, studentId, approvedBy
+### Catatan Penting
+- Akun siswa dibuat oleh Admin/Super Admin melalui sistem, siswa hanya perlu login dengan NISN yang telah diberikan
