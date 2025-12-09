@@ -56,7 +56,7 @@ const Schedule = () => {
         ...prev,
         studentName: data.name,
         class: data.class,
-        email: data.email,
+        email: "", // Student tidak punya email lagi, menggunakan NISN
         phone: data.phone || "",
       }));
     }
@@ -140,7 +140,7 @@ const Schedule = () => {
         setVisitForm({
           studentName: studentData.name,
           class: studentData.class,
-          email: studentData.email,
+          email: "",
           phone: studentData.phone || "",
           visitDate: "",
           visitTime: "",

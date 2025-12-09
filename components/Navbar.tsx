@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Calendar, Info, LayoutDashboard, LogIn, GraduationCap, User, Menu, X, ChevronDown } from "lucide-react";
+import { Home, BookOpen, Calendar, Info, LayoutDashboard, LogIn, LogOut, GraduationCap, User, Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,13 +18,20 @@ import { useEffect, useState } from "react";
 const Navbar = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isStudentLoggedIn, setIsStudentLoggedIn] = useState(false);
+  const [studentData, setStudentData] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const checkAuth = () => {
       const adminData = localStorage.getItem("adminData");
+      const studentDataLocal = localStorage.getItem("studentData");
       setIsLoggedIn(!!adminData);
+      setIsStudentLoggedIn(!!studentDataLocal);
+      if (studentDataLocal) {
+        setStudentData(JSON.parse(studentDataLocal));
+      }
     };
     
     const handleScroll = () => {
@@ -40,6 +47,13 @@ const Navbar = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("studentData");
+    setIsStudentLoggedIn(false);
+    setStudentData(null);
+    window.location.href = "/";
+  };
   
   const isActive = (path: string) => pathname === path;
   
@@ -101,6 +115,43 @@ const Navbar = () => {
                   Dashboard
                 </Button>
               </Link>
+            ) : isStudentLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    className="gap-2 h-11 px-6 ml-2 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <User className="h-4 w-4" />
+                    {studentData?.name || "Murid"}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 p-3 bg-white border-2 border-gray-100 shadow-2xl">
+                  <DropdownMenuLabel className="text-base font-bold text-gray-900 mb-2">
+                    <div className="flex flex-col">
+                      <span>{studentData?.name}</span>
+                      <span className="text-xs font-normal text-gray-500">NISN: {studentData?.nisn}</span>
+                      <span className="text-xs font-normal text-gray-500">{studentData?.class}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-gray-200 mb-2" />
+                  
+                  <DropdownMenuItem asChild className="p-0">
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 cursor-pointer p-4 rounded-xl bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border-2 border-red-200 hover:border-red-300 transition-all w-full"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center shadow-md">
+                        <LogOut className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="flex flex-col flex-1 text-left">
+                        <span className="font-bold text-gray-900 text-base">Logout</span>
+                        <span className="text-sm text-gray-600 font-medium">Keluar dari akun</span>
+                      </div>
+                    </button>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -146,7 +197,55 @@ const Navbar = () => {
           
           {/* Mobile Menu */}
           <div className="lg:hidden flex items-center gap-2">
-            {!isLoggedIn ? (
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="font-semibold"
+                >
+                  <LayoutDashboard className="h-4 w-4 mr-1" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : isStudentLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-semibold shadow-lg"
+                  >
+                    <User className="h-4 w-4 mr-1" />
+                    {studentData?.name?.split(' ')[0] || "Murid"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72 p-3 bg-white border-2 border-gray-100 shadow-2xl">
+                  <DropdownMenuLabel className="text-base font-bold text-gray-900 mb-2">
+                    <div className="flex flex-col">
+                      <span>{studentData?.name}</span>
+                      <span className="text-xs font-normal text-gray-500">NISN: {studentData?.nisn}</span>
+                      <span className="text-xs font-normal text-gray-500">{studentData?.class}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-gray-200 mb-2" />
+                  
+                  <DropdownMenuItem asChild className="p-0">
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-4 cursor-pointer p-4 rounded-xl bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border-2 border-red-200 hover:border-red-300 transition-all w-full"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center shadow-md">
+                        <LogOut className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="flex flex-col flex-1 text-left">
+                        <span className="font-bold text-gray-900">Logout</span>
+                        <span className="text-sm text-gray-600 font-medium">Keluar dari akun</span>
+                      </div>
+                    </button>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -186,17 +285,6 @@ const Navbar = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <Link href="/dashboard">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="font-semibold"
-                >
-                  <LayoutDashboard className="h-4 w-4 mr-1" />
-                  Dashboard
-                </Button>
-              </Link>
             )}
             
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             name: true,
+            nisn: true,
             class: true,
-            email: true,
             phone: true,
           },
         } : false,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         id: visit.id,
         studentName: visit.student ? visit.student.name : visit.studentName,
         class: visit.student ? visit.student.class : visit.class,
-        email: visit.student ? visit.student.email : visit.email,
+        email: visit.email, // email untuk anonymous, kosong untuk logged in student
         phone: visit.student ? visit.student.phone : visit.phone,
         visitDate: visit.visitDate.toISOString().split("T")[0],
         visitTime: visit.visitTime,
