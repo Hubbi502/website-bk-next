@@ -75,7 +75,7 @@ const Articles = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
-          </div>
+          </div>      
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="md:w-[200px]">
               <SelectValue placeholder="Category" />

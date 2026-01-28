@@ -62,7 +62,7 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
     // Search berdasarkan nama atau kelas
     if (searchQuery) {
       result = result.filter(v =>
-        v.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (v.studentName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         v.class.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -260,10 +260,10 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                              {visit.studentName.substring(0, 2).toUpperCase()}
+                              {(visit.studentName || '??').substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          {visit.studentName}
+                          {visit.studentName || 'Tidak ada nama'}
                         </div>
                       </TableCell>
                       <TableCell>

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// GET - Mengambil semua kunjungan
+// GET - Mengambil kunjungan (filter berdasarkan studentId jika diberikan)
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const studentId = searchParams.get("studentId");
+
     const visits = await prisma.visit.findMany({
+      where: studentId ? { studentId } : undefined,
       include: {
         approver: {
           select: {
