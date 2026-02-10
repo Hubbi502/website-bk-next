@@ -60,9 +60,10 @@ const Dashboard = () => {
       });
       router.push("/login");
     } else {
-      setAdminData(JSON.parse(storedAdmin));
+      const parsedAdmin = JSON.parse(storedAdmin);
+      setAdminData(parsedAdmin);
       loadArticles();
-      loadVisits();
+      loadVisits(parsedAdmin); // Pass admin data directly
     }
   }, [router, toast]);
 
@@ -70,7 +71,7 @@ const Dashboard = () => {
     try {
       const response = await fetch("/api/articles");
       const data = await response.json();
-      
+
       if (data.success) {
         setArticles(data.data);
       } else {
@@ -90,11 +91,17 @@ const Dashboard = () => {
     }
   };
 
-  const loadVisits = async () => {
+  const loadVisits = async (admin?: { id: string; role: string }) => {
     try {
-      const response = await fetch("/api/visits");
+      // Gunakan parameter admin jika ada, fallback ke state adminData
+      const currentAdmin = admin || adminData;
+      // Kirim teacherId dan role untuk filter privasi
+      const params = new URLSearchParams();
+      if (currentAdmin?.id) params.append("teacherId", currentAdmin.id);
+      if (currentAdmin?.role) params.append("role", currentAdmin.role);
+      const response = await fetch(`/api/visits?${params.toString()}`);
       const data = await response.json();
-      
+
       if (data.success) {
         setVisits(data.data);
       } else {

@@ -1,16 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// GET - Mengambil kunjungan (filter berdasarkan studentId jika diberikan)
+// GET - Mengambil kunjungan (filter berdasarkan studentId atau teacherId)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
+    const teacherId = searchParams.get("teacherId");
+    const role = searchParams.get("role");
+
+    // Build where clause berdasarkan role dan parameter
+    let whereClause: Record<string, unknown> = {};
+
+    if (studentId) {
+      // Filter untuk student melihat kunjungan mereka sendiri
+      whereClause.studentId = studentId;
+    } else if (teacherId && role !== "SUPER_ADMIN") {
+      // Filter untuk admin biasa - hanya lihat ajuan yang ditujukan kepada mereka
+      whereClause.targetTeacherId = teacherId;
+    }
+    // SUPER_ADMIN tidak ada filter tambahan - bisa lihat semua
 
     const visits = await prisma.visit.findMany({
-      where: studentId ? { studentId } : undefined,
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       include: {
         approver: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+        targetTeacher: {
           select: {
             id: true,
             name: true,
@@ -35,6 +56,12 @@ export async function GET(request: NextRequest) {
       status: visit.status.toLowerCase(),
       notes: visit.notes,
       approvedBy: visit.approver?.name || null,
+      targetTeacherId: visit.targetTeacherId,
+      targetTeacher: visit.targetTeacher ? {
+        id: visit.targetTeacher.id,
+        name: visit.targetTeacher.name,
+        role: visit.targetTeacher.role,
+      } : null,
       createdAt: visit.createdAt.toISOString(),
       updatedAt: visit.updatedAt.toISOString(),
     }));
@@ -59,7 +86,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { studentName, class: studentClass, email, phone, visitDate, visitTime, reason, studentId } = body;
+    const { studentName, class: studentClass, email, phone, visitDate, visitTime, reason, studentId, targetTeacherId } = body;
 
     // Validasi input
     if (!visitDate || !visitTime || !reason) {
@@ -83,6 +110,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // If studentId is provided, fetch student data first
+    let studentData = null;
+    if (studentId) {
+      studentData = await prisma.student.findUnique({
+        where: { id: studentId },
+        select: {
+          id: true,
+          name: true,
+          nisn: true,
+          class: true,
+          phone: true,
+        },
+      });
+
+      if (!studentData) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Data siswa tidak ditemukan",
+          },
+          { status: 404 }
+        );
+      }
+    }
+
     const visit = await prisma.visit.create({
       data: {
         visitDate: new Date(visitDate),
@@ -90,21 +142,12 @@ export async function POST(request: NextRequest) {
         reason,
         status: "PENDING",
         studentId: studentId || null,
-        studentName: !studentId ? studentName : null,
-        class: !studentId ? studentClass : null,
-        email: !studentId ? email : null,
-        phone: !studentId ? phone : null,
-      },
-      include: {
-        student: studentId ? {
-          select: {
-            id: true,
-            name: true,
-            nisn: true,
-            class: true,
-            phone: true,
-          },
-        } : false,
+        targetTeacherId: targetTeacherId || null,
+        // Always populate these fields - use student data if logged in, or form data if anonymous
+        studentName: studentData ? studentData.name : studentName,
+        class: studentData ? studentData.class : studentClass,
+        email: studentData ? null : email,
+        phone: studentData ? studentData.phone : phone,
       },
     });
 
@@ -113,10 +156,10 @@ export async function POST(request: NextRequest) {
       message: "Kunjungan berhasil dijadwalkan",
       data: {
         id: visit.id,
-        studentName: visit.student ? visit.student.name : visit.studentName,
-        class: visit.student ? visit.student.class : visit.class,
-        email: visit.email, // email untuk anonymous, kosong untuk logged in student
-        phone: visit.student ? visit.student.phone : visit.phone,
+        studentName: visit.studentName,
+        class: visit.class,
+        email: visit.email,
+        phone: visit.phone,
         visitDate: visit.visitDate.toISOString().split("T")[0],
         visitTime: visit.visitTime,
         reason: visit.reason,

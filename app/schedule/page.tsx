@@ -24,14 +24,29 @@ interface Visit {
   status: "pending" | "approved" | "completed" | "cancelled";
   notes?: string;
   approvedBy?: string;
+  targetTeacherId?: string;
+  targetTeacher?: {
+    id: string;
+    name: string;
+    role: string;
+  };
   createdAt: string;
   updatedAt?: string;
+}
+
+interface Teacher {
+  id: string;
+  name: string;
+  role: string;
+  assignedClasses: string[];
 }
 
 const Schedule = () => {
   const [myVisits, setMyVisits] = useState<Visit[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [studentData, setStudentData] = useState<any>(null);
+  const [availableTeachers, setAvailableTeachers] = useState<Teacher[]>([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>("");
 
   // Form state untuk kunjungan baru
   const [visitForm, setVisitForm] = useState({
@@ -50,16 +65,35 @@ const Schedule = () => {
     if (savedStudent) {
       const data = JSON.parse(savedStudent);
       setStudentData(data);
-      // Auto-fill form with student data
-      setVisitForm(prev => ({
-        ...prev,
-        studentName: data.name,
-        class: data.class,
-        email: "", // Student tidak punya email lagi, menggunakan NISN
-        phone: data.phone || "",
-      }));
     }
   }, []);
+
+  // Auto-fill form when dialog opens or studentData changes
+  useEffect(() => {
+    if (isBookingOpen && studentData) {
+      setVisitForm(prev => ({
+        ...prev,
+        studentName: studentData.name || "",
+        class: studentData.class || "",
+        email: "", // Student tidak punya email, menggunakan NISN
+        phone: studentData.phone || "",
+      }));
+
+      // Fetch available teachers for student's class
+      const fetchTeachers = async () => {
+        try {
+          const response = await fetch(`/api/teachers?class=${encodeURIComponent(studentData.class)}`);
+          const data = await response.json();
+          if (data.success) {
+            setAvailableTeachers(data.data);
+          }
+        } catch (error) {
+          console.error("Error fetching teachers:", error);
+        }
+      };
+      fetchTeachers();
+    }
+  }, [isBookingOpen, studentData]);
 
   // Load visits saat komponen dimount atau saat studentData berubah
   useEffect(() => {
@@ -118,6 +152,13 @@ const Schedule = () => {
       return;
     }
 
+    if (!selectedTeacherId) {
+      toast.error("Gagal!", {
+        description: "Pilih guru BK yang ingin Anda temui",
+      });
+      return;
+    }
+
     try {
       const payload = studentData
         ? {
@@ -125,8 +166,9 @@ const Schedule = () => {
           visitTime: visitForm.visitTime,
           reason: visitForm.reason,
           studentId: studentData.id,
+          targetTeacherId: selectedTeacherId,
         }
-        : visitForm;
+        : { ...visitForm, targetTeacherId: selectedTeacherId };
 
       const response = await fetch("/api/visits", {
         method: "POST",
@@ -154,6 +196,7 @@ const Schedule = () => {
           visitTime: "",
           reason: "",
         });
+        setSelectedTeacherId("");
       } else {
         setVisitForm({
           studentName: "",
@@ -236,11 +279,11 @@ const Schedule = () => {
         {/* Student Auth Section */}
         <div className="flex justify-center mb-8">
           {studentData ? (
-            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 px-6 py-3 rounded-lg border">
-              <User className="h-5 w-5 text-slate-600" />
+            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 px-6 py-3 rounded-lg border text-white">
+              <User className="h-5 w-5 text-white" />
               <div className="text-sm">
-                <p className="font-semibold">{studentData.name}</p>
-                <p className="text-slate-600 dark:text-slate-400">{studentData.class}</p>
+                <p className="font-semibold text-white">{studentData.name}</p>
+                <p className="text-white dark:text-slate-400">{studentData.class}</p>
               </div>
               <Button
                 variant="ghost"
@@ -327,8 +370,12 @@ const Schedule = () => {
             {studentData ? (
               <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
                 <DialogTrigger asChild>
-                  <Button size="lg" className="gap-2">
-                    <Send className="h-4 w-4" />
+                  <Button
+                    size="lg"
+                    className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-transform duration-300 ease-out
+                    transform hover:scale-105 px-6 py-3 focus-visible:ring-2 focus-visible:ring-blue-400"
+                  >
+                    <Send className="h-5 w-5" />
                     Ajukan Kunjungan Baru
                   </Button>
                 </DialogTrigger>
@@ -347,31 +394,33 @@ const Schedule = () => {
                         Informasi Pribadi
                       </h3>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
                         <div className="space-y-2">
-                          <Label htmlFor="studentName">
-                            Nama Lengkap <span className="text-red-500">*</span>
+                          <Label htmlFor="studentName" className="!text-gray-900">
+                            Nama Lengkap
                           </Label>
                           <Input
                             id="studentName"
                             placeholder="Contoh: Ahmad Fauzi"
-                            value={visitForm.studentName}
+                            value={studentData ? studentData.name : visitForm.studentName}
                             onChange={(e) => setVisitForm({ ...visitForm, studentName: e.target.value })}
                             disabled={!!studentData}
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="class">
-                            Kelas <span className="text-red-500">*</span>
+                          <Label htmlFor="class" className="!text-gray-900">
+                            Kelas
                           </Label>
                           <Select
-                            value={visitForm.class}
+                            value={studentData ? studentData.class : visitForm.class}
                             onValueChange={(value) => setVisitForm({ ...visitForm, class: value })}
                             disabled={!!studentData}
                           >
                             <SelectTrigger id="class">
-                              <SelectValue placeholder="Pilih kelas" />
+                              <SelectValue placeholder="Pilih kelas">
+                                {studentData ? studentData.class : undefined}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {classes.map((cls) => (
@@ -386,24 +435,37 @@ const Schedule = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email (opsional)</Label>
-                          <Input
-                            disabled={!!studentData}
-                            id="email"
-                            type="email"
-                            placeholder="email@contoh.com"
-                            value={visitForm.email}
-                            onChange={(e) => setVisitForm({ ...visitForm, email: e.target.value })}
-                          />
+                          {studentData ? (
+                            <>
+                              <Label htmlFor="nisn" className="!text-gray-900">NISN</Label>
+                              <Input
+                                disabled
+                                id="nisn"
+                                type="text"
+                                value={studentData.nisn || ""}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <Label htmlFor="email" className="!text-gray-900">Email (opsional)</Label>
+                              <Input
+                                id="email"
+                                type="email"
+                                placeholder="email@contoh.com"
+                                value={visitForm.email}
+                                onChange={(e) => setVisitForm({ ...visitForm, email: e.target.value })}
+                              />
+                            </>
+                          )}
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="phone">No. Telepon (opsional)</Label>
+                          <Label htmlFor="phone" className="!text-gray-900">No. Telepon (opsional)</Label>
                           <Input
                             id="phone"
                             type="tel"
                             placeholder="081234567890"
-                            value={visitForm.phone}
+                            value={studentData ? (studentData.phone || "") : visitForm.phone}
                             onChange={(e) => setVisitForm({ ...visitForm, phone: e.target.value })}
                             disabled={!!studentData}
                           />
@@ -419,8 +481,8 @@ const Schedule = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="visitDate">
-                            Tanggal Kunjungan <span className="text-red-500">*</span>
+                          <Label htmlFor="visitDate" className="!text-gray-900">
+                            Tanggal Kunjungan
                           </Label>
                           <Input
                             id="visitDate"
@@ -432,8 +494,8 @@ const Schedule = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="visitTime">
-                            Waktu Kunjungan <span className="text-red-500">*</span>
+                          <Label htmlFor="visitTime" className="!text-gray-900">
+                            Waktu Kunjungan
                           </Label>
                           <Select
                             value={visitForm.visitTime}
@@ -452,6 +514,44 @@ const Schedule = () => {
                           </Select>
                         </div>
                       </div>
+
+                      {/* Pilihan Guru BK */}
+                      <div className="space-y-2 mt-4">
+                        <Label htmlFor="targetTeacher" className="!text-gray-900">
+                          Pilih Guru BK
+                        </Label>
+                        <Select
+                          value={selectedTeacherId}
+                          onValueChange={setSelectedTeacherId}
+                        >
+                          <SelectTrigger id="targetTeacher">
+                            <SelectValue placeholder="Pilih guru BK yang ingin ditemui" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableTeachers.length === 0 ? (
+                              <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                                Tidak ada guru tersedia untuk kelas Anda
+                              </div>
+                            ) : (
+                              availableTeachers.map((teacher) => (
+                                <SelectItem key={teacher.id} value={teacher.id}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{teacher.name}</span>
+                                    {teacher.role === "SUPER_ADMIN" && (
+                                      <Badge variant="secondary" className="text-xs py-0 px-1.5">
+                                        Koordinator
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-slate-500">
+                          Pilih guru BK yang ingin Anda temui untuk konsultasi.
+                        </p>
+                      </div>
                     </div>
 
                     {/* Keperluan */}
@@ -461,8 +561,8 @@ const Schedule = () => {
                       </h3>
 
                       <div className="space-y-2">
-                        <Label htmlFor="reason">
-                          Tujuan/Keperluan Kunjungan <span className="text-red-500">*</span>
+                        <Label htmlFor="reason" className="!text-gray-900">
+                          Tujuan/Keperluan Kunjungan
                         </Label>
                         <Textarea
                           id="reason"
@@ -501,15 +601,29 @@ const Schedule = () => {
                       variant="outline"
                       onClick={() => {
                         setIsBookingOpen(false);
-                        setVisitForm({
-                          studentName: "",
-                          class: "",
-                          email: "",
-                          phone: "",
-                          visitDate: "",
-                          visitTime: "",
-                          reason: "",
-                        });
+                        setSelectedTeacherId("");
+                        // Preserve student data if logged in
+                        if (studentData) {
+                          setVisitForm({
+                            studentName: studentData.name,
+                            class: studentData.class,
+                            email: "",
+                            phone: studentData.phone || "",
+                            visitDate: "",
+                            visitTime: "",
+                            reason: "",
+                          });
+                        } else {
+                          setVisitForm({
+                            studentName: "",
+                            class: "",
+                            email: "",
+                            phone: "",
+                            visitDate: "",
+                            visitTime: "",
+                            reason: "",
+                          });
+                        }
                       }}
                     >
                       Batal
@@ -617,10 +731,10 @@ const Schedule = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div >
 
 
-    </div>
+    </div >
   );
 };
 

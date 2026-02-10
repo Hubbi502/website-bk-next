@@ -18,7 +18,9 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  FileEdit
+  FileEdit,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 interface Visit {
   id: string;
@@ -32,6 +34,12 @@ interface Visit {
   status: "pending" | "approved" | "completed" | "cancelled";
   notes?: string;
   approvedBy?: string;
+  targetTeacherId?: string;
+  targetTeacher?: {
+    id: string;
+    name: string;
+    role: string;
+  };
   createdAt: string;
   updatedAt?: string;
 }
@@ -50,6 +58,9 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [visitNotes, setVisitNotes] = useState("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [visitToDelete, setVisitToDelete] = useState<Visit | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let result = [...visits];
@@ -63,7 +74,8 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
     if (searchQuery) {
       result = result.filter(v =>
         (v.studentName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        v.class.toLowerCase().includes(searchQuery.toLowerCase())
+        (v.class || '').toLowerCase().includes(searchQuery.toLowerCase())
+
       );
     }
 
@@ -154,6 +166,44 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
     }
   };
 
+  const handleDeleteClick = (visit: Visit) => {
+    setVisitToDelete(visit);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!visitToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/visits/${visitToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal menghapus kunjungan");
+      }
+
+      await loadVisits();
+      setIsDeleteDialogOpen(false);
+      setVisitToDelete(null);
+      toast({
+        title: "Berhasil",
+        description: "Data kunjungan berhasil dihapus",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menghapus kunjungan",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <Card>
@@ -237,6 +287,7 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
                 <TableRow className="bg-slate-50">
                   <TableHead className="font-semibold">Nama Murid</TableHead>
                   <TableHead className="font-semibold">Kelas</TableHead>
+                  <TableHead className="font-semibold">Guru BK</TableHead>
                   <TableHead className="font-semibold">Tanggal</TableHead>
                   <TableHead className="font-semibold">Waktu</TableHead>
                   <TableHead className="font-semibold">Keperluan</TableHead>
@@ -247,7 +298,7 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
               <TableBody>
                 {filteredVisits.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-slate-500 py-8">
+                    <TableCell colSpan={8} className="text-center text-slate-500 py-8">
                       {searchQuery || filterStatus !== "all"
                         ? "Tidak ada data yang sesuai dengan filter"
                         : "Belum ada data kunjungan"}
@@ -268,6 +319,18 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{visit.class}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {visit.targetTeacher ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm">{visit.targetTeacher.name}</span>
+                            {visit.targetTeacher.role === "SUPER_ADMIN" && (
+                              <Badge variant="secondary" className="text-xs py-0 px-1">K</Badge>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
@@ -328,6 +391,16 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
                               title="Tandai Selesai"
                             >
                               Selesai
+                            </Button>
+                          )}
+                          {(visit.status === "completed" || visit.status === "cancelled") && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteClick(visit)}
+                              title="Hapus Data"
+                            >
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
@@ -418,6 +491,18 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
                 <div>{getStatusBadge(selectedVisit.status)}</div>
               </div>
 
+              {selectedVisit.targetTeacher && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-600">Guru BK yang Dipilih</Label>
+                  <div className="flex items-center gap-2">
+                    <p className="text-base font-semibold">{selectedVisit.targetTeacher.name}</p>
+                    {selectedVisit.targetTeacher.role === "SUPER_ADMIN" && (
+                      <Badge variant="secondary">Koordinator</Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <Separator />
 
               <div className="space-y-2">
@@ -459,6 +544,79 @@ export function VisitManagement({ visits, loadVisits, getStatusBadge }: VisitMan
             </Button>
             <Button onClick={handleSaveNotes}>
               Simpan Catatan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Konfirmasi Hapus */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Konfirmasi Hapus
+            </DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin menghapus data kunjungan ini? Tindakan ini tidak dapat dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          {visitToDelete && (
+            <div className="py-4 space-y-2">
+              <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Nama Murid:</span>
+                  <span className="font-medium">{visitToDelete.studentName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Kelas:</span>
+                  <span className="font-medium">{visitToDelete.class}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Tanggal:</span>
+                  <span className="font-medium">
+                    {new Date(visitToDelete.visitDate).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Status:</span>
+                  {getStatusBadge(visitToDelete.status)}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setVisitToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              Batal
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="gap-2"
+            >
+              {isDeleting ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Menghapus...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Hapus
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -21,16 +21,18 @@ enum AdminRole {
 
 // Model untuk Admin/Guru BK
 model Admin {
-  id        String      @id @default(cuid())
-  name      String
-  username  String   @unique
-  password  String   // Should be hashed in production
-  role      AdminRole   @default(ADMIN)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String      @id @default(cuid())
+  name            String
+  username        String   @unique
+  password        String   // Should be hashed in production
+  role            AdminRole   @default(ADMIN)
+  assignedClasses String[]  @default([])  // Kelas yang ditangani guru ini (kosong = belum ada assignment)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  articles  Article[]
-  visits    Visit[]
+  articles        Article[]
+  visits          Visit[]           // Visits yang diapprove oleh admin ini
+  targetedVisits  Visit[] @relation("TargetTeacher")  // Visits yang ditujukan ke guru ini
 
   @@map("admins")
 }
@@ -94,26 +96,29 @@ model Comment {
 
 // Model untuk Kunjungan Murid
 model Visit {
-  id          String      @id @default(cuid())
-  visitDate   DateTime
-  visitTime   String
-  reason      String   @db.Text
-  status      VisitStatus @default(PENDING)
-  notes       String?  @db.Text
-  approvedBy  String?
-  approver    Admin?   @relation(fields: [approvedBy], references: [id], onDelete: SetNull)
-  studentId   String?
-  student     Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id              String      @id @default(cuid())
+  visitDate       DateTime
+  visitTime       String
+  reason          String   @db.Text
+  status          VisitStatus @default(PENDING)
+  notes           String?  @db.Text
+  approvedBy      String?
+  approver        Admin?   @relation(fields: [approvedBy], references: [id], onDelete: SetNull)
+  targetTeacherId String?  // Guru BK yang dipilih oleh siswa
+  targetTeacher   Admin?   @relation("TargetTeacher", fields: [targetTeacherId], references: [id], onDelete: SetNull)
+  studentId       String?
+  student         Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
   // Fields untuk anonymous visits (jika tidak login)
-  studentName String?
-  class       String?
-  email       String?
-  phone       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  studentName     String?
+  class           String?
+  email           String?
+  phone           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([approvedBy])
   @@index([studentId])
+  @@index([targetTeacherId])
   @@index([status])
   @@index([visitDate])
   @@map("visits")
