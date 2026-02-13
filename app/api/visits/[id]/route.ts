@@ -20,6 +20,20 @@ export async function GET(
             role: true,
           },
         },
+        targetTeacher: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+        delegatedToTeacher: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -45,6 +59,22 @@ export async function GET(
       status: visit.status.toLowerCase(),
       notes: visit.notes,
       approvedBy: visit.approver?.name || null,
+      targetTeacherId: visit.targetTeacherId,
+      targetTeacher: visit.targetTeacher ? {
+        id: visit.targetTeacher.id,
+        name: visit.targetTeacher.name,
+        role: visit.targetTeacher.role,
+      } : null,
+      forwardedToCoordinator: visit.forwardedToCoordinator,
+      forwardReason: visit.forwardReason,
+      delegatedToTeacherId: visit.delegatedToTeacherId,
+      delegatedToTeacher: visit.delegatedToTeacher ? {
+        id: visit.delegatedToTeacher.id,
+        name: visit.delegatedToTeacher.name,
+        role: visit.delegatedToTeacher.role,
+      } : null,
+      delegationStatus: visit.delegationStatus?.toLowerCase() || null,
+      delegationNotes: visit.delegationNotes,
       createdAt: visit.createdAt.toISOString(),
       updatedAt: visit.updatedAt.toISOString(),
     };
@@ -65,7 +95,7 @@ export async function GET(
   }
 }
 
-// PUT/PATCH - Update kunjungan (untuk approve/reject/update status)
+// PUT/PATCH - Update kunjungan (untuk approve/reject/forward/delegate)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -74,10 +104,8 @@ export async function PUT(
     const { id } = await params;
     const visitId = id;
 
-
-
     const body = await request.json();
-    const { status, notes, approvedBy } = body;
+    const { action, status, notes, approvedBy, delegatedToTeacherId, delegationNotes, forwardReason } = body;
 
     // Check if visit exists
     const existingVisit = await prisma.visit.findUnique({
@@ -94,14 +122,69 @@ export async function PUT(
       );
     }
 
+    let updateData: Record<string, unknown> = {};
+
+    switch (action) {
+      case "forward":
+        // Guru menyerahkan ke koordinator
+        updateData = {
+          status: "FORWARDED",
+          forwardedToCoordinator: true,
+          forwardReason: forwardReason || notes || null,
+          notes: notes || existingVisit.notes,
+        };
+        break;
+
+      case "delegate":
+        // Koordinator mendelegasikan ke guru lain
+        if (!delegatedToTeacherId) {
+          return NextResponse.json(
+            { success: false, error: "Harus memilih guru untuk didelegasikan" },
+            { status: 400 }
+          );
+        }
+        updateData = {
+          delegatedToTeacherId,
+          delegationStatus: "PENDING",
+          delegationNotes: delegationNotes || null,
+        };
+        break;
+
+      case "accept_delegation":
+        // Guru menerima delegasi
+        updateData = {
+          status: "APPROVED",
+          delegationStatus: "ACCEPTED",
+          approvedBy: approvedBy || null,
+          // Update targetTeacher ke guru yang menerima delegasi
+          targetTeacherId: existingVisit.delegatedToTeacherId,
+        };
+        break;
+
+      case "reject_delegation":
+        // Guru menolak delegasi - kembali ke FORWARDED agar koordinator bisa re-delegate
+        updateData = {
+          delegatedToTeacherId: null,
+          delegationStatus: null,
+          delegationNotes: null,
+          // Status tetap FORWARDED agar koordinator bisa pilih guru lain
+        };
+        break;
+
+      default:
+        // Legacy behavior: update status/notes/approvedBy langsung
+        updateData = {
+          ...(status && { status: status.toUpperCase() }),
+          ...(notes !== undefined && { notes }),
+          ...(approvedBy && { approvedBy }),
+        };
+        break;
+    }
+
     // Update visit
     const updatedVisit = await prisma.visit.update({
       where: { id: visitId },
-      data: {
-        ...(status && { status: status.toUpperCase() }),
-        ...(notes !== undefined && { notes }),
-        ...(approvedBy && { approvedBy }),
-      },
+      data: updateData,
       include: {
         approver: {
           select: {
@@ -110,8 +193,29 @@ export async function PUT(
             role: true,
           },
         },
+        targetTeacher: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+        delegatedToTeacher: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
       },
     });
+
+    const actionMessages: Record<string, string> = {
+      forward: "Kunjungan berhasil diserahkan ke koordinator",
+      delegate: "Kunjungan berhasil didelegasikan ke guru lain",
+      accept_delegation: "Delegasi berhasil diterima",
+      reject_delegation: "Delegasi berhasil ditolak",
+    };
 
     const formattedVisit = {
       id: updatedVisit.id,
@@ -125,13 +229,29 @@ export async function PUT(
       status: updatedVisit.status.toLowerCase(),
       notes: updatedVisit.notes,
       approvedBy: updatedVisit.approver?.name || null,
+      targetTeacherId: updatedVisit.targetTeacherId,
+      targetTeacher: updatedVisit.targetTeacher ? {
+        id: updatedVisit.targetTeacher.id,
+        name: updatedVisit.targetTeacher.name,
+        role: updatedVisit.targetTeacher.role,
+      } : null,
+      forwardedToCoordinator: updatedVisit.forwardedToCoordinator,
+      forwardReason: updatedVisit.forwardReason,
+      delegatedToTeacherId: updatedVisit.delegatedToTeacherId,
+      delegatedToTeacher: updatedVisit.delegatedToTeacher ? {
+        id: updatedVisit.delegatedToTeacher.id,
+        name: updatedVisit.delegatedToTeacher.name,
+        role: updatedVisit.delegatedToTeacher.role,
+      } : null,
+      delegationStatus: updatedVisit.delegationStatus?.toLowerCase() || null,
+      delegationNotes: updatedVisit.delegationNotes,
       createdAt: updatedVisit.createdAt.toISOString(),
       updatedAt: updatedVisit.updatedAt.toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      message: "Status kunjungan berhasil diperbarui",
+      message: action ? actionMessages[action] || "Status kunjungan berhasil diperbarui" : "Status kunjungan berhasil diperbarui",
       data: formattedVisit,
     });
   } catch (error) {

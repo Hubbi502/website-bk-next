@@ -27,7 +27,7 @@ interface Visit {
   visitDate: string;
   visitTime: string;
   reason: string;
-  status: "pending" | "approved" | "completed" | "cancelled";
+  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled";
   notes?: string;
   approvedBy?: string;
   createdAt: string;

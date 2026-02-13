@@ -7,19 +7,13 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const studentClass = searchParams.get("class");
 
-        // Jika tidak ada kelas, kembalikan semua guru yang bisa dipilih
-        // Super Admin bisa menangani semua kelas
+        // Hanya tampilkan guru BK biasa (ADMIN) yang menangani kelas siswa
+        // Koordinator (SUPER_ADMIN) tidak ditampilkan di pilihan siswa
         const teachers = await prisma.admin.findMany({
-            where: studentClass
-                ? {
-                    OR: [
-                        // Super Admin bisa menangani semua kelas
-                        { role: "SUPER_ADMIN" },
-                        // Guru dengan kelas yang sesuai
-                        { assignedClasses: { has: studentClass } },
-                    ],
-                }
-                : undefined,
+            where: {
+                role: "ADMIN", // Hanya guru biasa, bukan koordinator
+                ...(studentClass ? { assignedClasses: { has: studentClass } } : {}),
+            },
             select: {
                 id: true,
                 name: true,
@@ -27,7 +21,6 @@ export async function GET(request: NextRequest) {
                 assignedClasses: true,
             },
             orderBy: [
-                { role: "desc" }, // Super Admin dulu
                 { name: "asc" },
             ],
         });

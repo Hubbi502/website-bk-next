@@ -15,11 +15,23 @@ export async function GET(request: NextRequest) {
     if (studentId) {
       // Filter untuk student melihat kunjungan mereka sendiri
       whereClause.studentId = studentId;
-    } else if (teacherId && role !== "SUPER_ADMIN") {
-      // Filter untuk admin biasa - hanya lihat ajuan yang ditujukan kepada mereka
-      whereClause.targetTeacherId = teacherId;
+    } else if (teacherId && role === "SUPER_ADMIN") {
+      // Koordinator bisa melihat:
+      // 1. Visits yang ditujukan ke mereka sendiri
+      // 2. Visits yang di-forward ke koordinator (forwardedToCoordinator = true)
+      whereClause.OR = [
+        { targetTeacherId: teacherId },
+        { forwardedToCoordinator: true },
+      ];
+    } else if (teacherId) {
+      // Admin biasa bisa melihat:
+      // 1. Visits yang ditujukan kepada mereka
+      // 2. Visits yang didelegasikan ke mereka
+      whereClause.OR = [
+        { targetTeacherId: teacherId },
+        { delegatedToTeacherId: teacherId },
+      ];
     }
-    // SUPER_ADMIN tidak ada filter tambahan - bisa lihat semua
 
     const visits = await prisma.visit.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
@@ -32,6 +44,13 @@ export async function GET(request: NextRequest) {
           },
         },
         targetTeacher: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+        delegatedToTeacher: {
           select: {
             id: true,
             name: true,
@@ -62,6 +81,16 @@ export async function GET(request: NextRequest) {
         name: visit.targetTeacher.name,
         role: visit.targetTeacher.role,
       } : null,
+      forwardedToCoordinator: visit.forwardedToCoordinator,
+      forwardReason: visit.forwardReason,
+      delegatedToTeacherId: visit.delegatedToTeacherId,
+      delegatedToTeacher: visit.delegatedToTeacher ? {
+        id: visit.delegatedToTeacher.id,
+        name: visit.delegatedToTeacher.name,
+        role: visit.delegatedToTeacher.role,
+      } : null,
+      delegationStatus: visit.delegationStatus?.toLowerCase() || null,
+      delegationNotes: visit.delegationNotes,
       createdAt: visit.createdAt.toISOString(),
       updatedAt: visit.updatedAt.toISOString(),
     }));

@@ -21,7 +21,7 @@ interface Visit {
   visitDate: string;
   visitTime: string;
   reason: string;
-  status: "pending" | "approved" | "completed" | "cancelled";
+  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled";
   notes?: string;
   approvedBy?: string;
   targetTeacherId?: string;
@@ -30,6 +30,14 @@ interface Visit {
     name: string;
     role: string;
   };
+  forwardedToCoordinator?: boolean;
+  delegatedToTeacherId?: string;
+  delegatedToTeacher?: {
+    id: string;
+    name: string;
+    role: string;
+  };
+  delegationStatus?: string | null;
   createdAt: string;
   updatedAt?: string;
 }
@@ -223,16 +231,24 @@ const Schedule = () => {
     }
   };
 
-  const upcomingAppointments = myVisits.filter(v =>
-    v.status === "approved" || v.status === "pending"
-  ).slice(0, 5);
+  const upcomingAppointments = myVisits
+    .filter(
+      (v) =>
+        v.status === "approved" ||
+        v.status === "pending" ||
+        v.status === "forwarded",
+    )
+    .slice(0, 5);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "confirmed":
+      case "approved":
         return <CheckCircle2 className="h-5 w-5 text-green-600" />;
       case "pending":
         return <AlertCircle className="h-5 w-5 text-yellow-600" />;
+      case "forwarded":
+        return <Send className="h-5 w-5 text-blue-600" />;
       case "cancelled":
         return <XCircle className="h-5 w-5 text-red-600" />;
       default:
@@ -243,10 +259,23 @@ const Schedule = () => {
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       confirmed: "bg-green-100 text-green-800 hover:bg-green-100",
+      approved: "bg-green-100 text-green-800 hover:bg-green-100",
       pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
-      cancelled: "bg-red-100 text-red-800 hover:bg-red-100"
+      forwarded: "bg-blue-100 text-blue-800 hover:bg-blue-100",
+      cancelled: "bg-red-100 text-red-800 hover:bg-red-100",
     };
     return variants[status] || "";
+  };
+
+  const getStatusText = (status: string) => {
+    const labels: Record<string, string> = {
+      pending: "Menunggu Persetujuan",
+      approved: "Disetujui",
+      forwarded: "Sedang Diproses",
+      completed: "Selesai",
+      cancelled: "Dibatalkan",
+    };
+    return labels[status] || status;
   };
 
   const handleLogout = () => {
@@ -270,9 +299,12 @@ const Schedule = () => {
 
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Jadwal Kunjungan BK</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Jadwal Kunjungan BK
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Ajukan jadwal kunjungan ke Guru BK untuk konsultasi akademik, karir, atau pribadi
+            Ajukan jadwal kunjungan ke Guru BK untuk konsultasi akademik, karir,
+            atau pribadi
           </p>
         </div>
 
@@ -283,7 +315,9 @@ const Schedule = () => {
               <User className="h-5 w-5 text-white" />
               <div className="text-sm">
                 <p className="font-semibold text-white">{studentData.name}</p>
-                <p className="text-white dark:text-slate-400">{studentData.class}</p>
+                <p className="text-white dark:text-slate-400">
+                  {studentData.class}
+                </p>
               </div>
               <Button
                 variant="ghost"
@@ -312,18 +346,27 @@ const Schedule = () => {
             <Card className="text-center py-12">
               <CardContent>
                 <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Belum ada jadwal kunjungan</p>
-                <p className="text-sm text-muted-foreground mt-2">Buat jadwal kunjungan baru dengan mengklik tombol di bawah</p>
+                <p className="text-muted-foreground">
+                  Belum ada jadwal kunjungan
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Buat jadwal kunjungan baru dengan mengklik tombol di bawah
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {upcomingAppointments.map((appointment) => (
-                <Card key={appointment.id} className="shadow-card hover:shadow-elevated transition-all">
+                <Card
+                  key={appointment.id}
+                  className="shadow-card hover:shadow-elevated transition-all"
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">{appointment.studentName}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {appointment.studentName}
+                        </CardTitle>
                         <CardDescription className="flex items-center gap-2 mt-2">
                           <User className="h-4 w-4" />
                           {appointment.class}
@@ -332,23 +375,52 @@ const Schedule = () => {
                       <Badge className={getStatusBadge(appointment.status)}>
                         <span className="flex items-center gap-1">
                           {getStatusIcon(appointment.status)}
-                          {appointment.status}
+                          {getStatusText(appointment.status)}
                         </span>
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
+                      {appointment.targetTeacher && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <User className="h-4 w-4 text-slate-400" />
+                          <span>
+                            Guru BK:{" "}
+                            <strong>{appointment.targetTeacher.name}</strong>
+                          </span>
+                        </div>
+                      )}
+                      {appointment.status === "forwarded" && (
+                        <div className="p-2 bg-blue-50 rounded-lg text-xs text-blue-800 border border-blue-200">
+                          <p className="font-medium">
+                            Kunjungan Anda sedang diproses
+                          </p>
+                          <p>
+                            Koordinator sedang mencarikan guru BK yang sesuai
+                            untuk menangani kunjungan Anda.
+                            {appointment.delegatedToTeacher &&
+                            appointment.delegationStatus === "pending"
+                              ? ` Guru ${appointment.delegatedToTeacher.name} sedang diminta persetujuan.`
+                              : " Mohon tunggu."}
+                          </p>
+                        </div>
+                      )}
                       <p className="text-sm font-medium">Keperluan:</p>
-                      <p className="text-sm text-muted-foreground">{appointment.reason}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {appointment.reason}
+                      </p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground mt-3">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          {new Date(appointment.visitDate).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                          })}
+                          {new Date(appointment.visitDate).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
@@ -381,9 +453,12 @@ const Schedule = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Form Pengajuan Kunjungan ke Guru BK</DialogTitle>
+                    <DialogTitle>
+                      Form Pengajuan Kunjungan ke Guru BK
+                    </DialogTitle>
                     <DialogDescription>
-                      Lengkapi formulir di bawah untuk mengajukan jadwal kunjungan ke Guru BK
+                      Lengkapi formulir di bawah untuk mengajukan jadwal
+                      kunjungan ke Guru BK
                     </DialogDescription>
                   </DialogHeader>
 
@@ -396,14 +471,26 @@ const Schedule = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
                         <div className="space-y-2">
-                          <Label htmlFor="studentName" className="!text-gray-900">
+                          <Label
+                            htmlFor="studentName"
+                            className="!text-gray-900"
+                          >
                             Nama Lengkap
                           </Label>
                           <Input
                             id="studentName"
                             placeholder="Contoh: Ahmad Fauzi"
-                            value={studentData ? studentData.name : visitForm.studentName}
-                            onChange={(e) => setVisitForm({ ...visitForm, studentName: e.target.value })}
+                            value={
+                              studentData
+                                ? studentData.name
+                                : visitForm.studentName
+                            }
+                            onChange={(e) =>
+                              setVisitForm({
+                                ...visitForm,
+                                studentName: e.target.value,
+                              })
+                            }
                             disabled={!!studentData}
                           />
                         </div>
@@ -413,8 +500,12 @@ const Schedule = () => {
                             Kelas
                           </Label>
                           <Select
-                            value={studentData ? studentData.class : visitForm.class}
-                            onValueChange={(value) => setVisitForm({ ...visitForm, class: value })}
+                            value={
+                              studentData ? studentData.class : visitForm.class
+                            }
+                            onValueChange={(value) =>
+                              setVisitForm({ ...visitForm, class: value })
+                            }
                             disabled={!!studentData}
                           >
                             <SelectTrigger id="class">
@@ -437,7 +528,9 @@ const Schedule = () => {
                         <div className="space-y-2">
                           {studentData ? (
                             <>
-                              <Label htmlFor="nisn" className="!text-gray-900">NISN</Label>
+                              <Label htmlFor="nisn" className="!text-gray-900">
+                                NISN
+                              </Label>
                               <Input
                                 disabled
                                 id="nisn"
@@ -447,26 +540,44 @@ const Schedule = () => {
                             </>
                           ) : (
                             <>
-                              <Label htmlFor="email" className="!text-gray-900">Email (opsional)</Label>
+                              <Label htmlFor="email" className="!text-gray-900">
+                                Email (opsional)
+                              </Label>
                               <Input
                                 id="email"
                                 type="email"
                                 placeholder="email@contoh.com"
                                 value={visitForm.email}
-                                onChange={(e) => setVisitForm({ ...visitForm, email: e.target.value })}
+                                onChange={(e) =>
+                                  setVisitForm({
+                                    ...visitForm,
+                                    email: e.target.value,
+                                  })
+                                }
                               />
                             </>
                           )}
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="phone" className="!text-gray-900">No. Telepon (opsional)</Label>
+                          <Label htmlFor="phone" className="!text-gray-900">
+                            No. Telepon (opsional)
+                          </Label>
                           <Input
                             id="phone"
                             type="tel"
                             placeholder="081234567890"
-                            value={studentData ? (studentData.phone || "") : visitForm.phone}
-                            onChange={(e) => setVisitForm({ ...visitForm, phone: e.target.value })}
+                            value={
+                              studentData
+                                ? studentData.phone || ""
+                                : visitForm.phone
+                            }
+                            onChange={(e) =>
+                              setVisitForm({
+                                ...visitForm,
+                                phone: e.target.value,
+                              })
+                            }
                             disabled={!!studentData}
                           />
                         </div>
@@ -487,9 +598,14 @@ const Schedule = () => {
                           <Input
                             id="visitDate"
                             type="date"
-                            min={new Date().toISOString().split('T')[0]}
+                            min={new Date().toISOString().split("T")[0]}
                             value={visitForm.visitDate}
-                            onChange={(e) => setVisitForm({ ...visitForm, visitDate: e.target.value })}
+                            onChange={(e) =>
+                              setVisitForm({
+                                ...visitForm,
+                                visitDate: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
@@ -499,7 +615,9 @@ const Schedule = () => {
                           </Label>
                           <Select
                             value={visitForm.visitTime}
-                            onValueChange={(value) => setVisitForm({ ...visitForm, visitTime: value })}
+                            onValueChange={(value) =>
+                              setVisitForm({ ...visitForm, visitTime: value })
+                            }
                           >
                             <SelectTrigger id="visitTime">
                               <SelectValue placeholder="Pilih waktu" />
@@ -517,7 +635,10 @@ const Schedule = () => {
 
                       {/* Pilihan Guru BK */}
                       <div className="space-y-2 mt-4">
-                        <Label htmlFor="targetTeacher" className="!text-gray-900">
+                        <Label
+                          htmlFor="targetTeacher"
+                          className="!text-gray-900"
+                        >
                           Pilih Guru BK
                         </Label>
                         <Select
@@ -535,14 +656,7 @@ const Schedule = () => {
                             ) : (
                               availableTeachers.map((teacher) => (
                                 <SelectItem key={teacher.id} value={teacher.id}>
-                                  <div className="flex items-center gap-2">
-                                    <span>{teacher.name}</span>
-                                    {teacher.role === "SUPER_ADMIN" && (
-                                      <Badge variant="secondary" className="text-xs py-0 px-1.5">
-                                        Koordinator
-                                      </Badge>
-                                    )}
-                                  </div>
+                                  <span>{teacher.name}</span>
                                 </SelectItem>
                               ))
                             )}
@@ -568,11 +682,17 @@ const Schedule = () => {
                           id="reason"
                           placeholder="Jelaskan keperluan atau tujuan kunjungan Anda ke Guru BK. Contoh: Konsultasi masalah akademik, bimbingan karir, konseling pribadi, dll."
                           value={visitForm.reason}
-                          onChange={(e) => setVisitForm({ ...visitForm, reason: e.target.value })}
+                          onChange={(e) =>
+                            setVisitForm({
+                              ...visitForm,
+                              reason: e.target.value,
+                            })
+                          }
                           rows={5}
                         />
                         <p className="text-xs text-slate-500">
-                          Jelaskan dengan jelas agar Guru BK dapat mempersiapkan sesi konsultasi dengan baik.
+                          Jelaskan dengan jelas agar Guru BK dapat mempersiapkan
+                          sesi konsultasi dengan baik.
                         </p>
                       </div>
                     </div>
@@ -586,8 +706,13 @@ const Schedule = () => {
                             <p className="font-medium">Catatan Penting:</p>
                             <ul className="list-disc list-inside space-y-1 text-xs">
                               <li>Pengajuan akan ditinjau oleh Guru BK</li>
-                              <li>Anda akan mendapat notifikasi status pengajuan</li>
-                              <li>Harap datang tepat waktu sesuai jadwal yang disetujui</li>
+                              <li>
+                                Anda akan mendapat notifikasi status pengajuan
+                              </li>
+                              <li>
+                                Harap datang tepat waktu sesuai jadwal yang
+                                disetujui
+                              </li>
                               <li>Hubungi BK jika ada perubahan jadwal</li>
                             </ul>
                           </div>
@@ -637,11 +762,7 @@ const Schedule = () => {
               </Dialog>
             ) : (
               <Link href="/student-login">
-                <Button
-                  size="lg"
-                  className="gap-2"
-                  variant="outline"
-                >
+                <Button size="lg" className="gap-2" variant="outline">
                   <User className="h-4 w-4" />
                   Login untuk Mengajukan Kunjungan
                 </Button>
@@ -700,7 +821,9 @@ const Schedule = () => {
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold mb-3 text-slate-900">Langkah-langkah:</h4>
+                <h4 className="font-semibold mb-3 text-slate-900">
+                  Langkah-langkah:
+                </h4>
                 <ol className="list-decimal list-inside space-y-2 text-slate-700">
                   <li>Klik tombol "Ajukan Kunjungan Baru"</li>
                   <li>Lengkapi formulir dengan data yang akurat</li>
@@ -711,30 +834,36 @@ const Schedule = () => {
                 </ol>
               </div>
               <div>
-                <h4 className="font-semibold mb-3 text-slate-900">Waktu Layanan BK:</h4>
+                <h4 className="font-semibold mb-3 text-slate-900">
+                  Waktu Layanan BK:
+                </h4>
                 <ul className="space-y-2 text-slate-700">
                   <li className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-blue-600" />
-                    <span><strong>Senin - Jumat:</strong> 08:00 - 16:00 WIB</span>
+                    <span>
+                      <strong>Senin - Jumat:</strong> 08:00 - 16:00 WIB
+                    </span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-blue-600" />
-                    <span><strong>Sabtu:</strong> 08:00 - 12:00 WIB</span>
+                    <span>
+                      <strong>Sabtu:</strong> 08:00 - 12:00 WIB
+                    </span>
                   </li>
                 </ul>
                 <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
                   <p className="text-sm text-slate-600">
-                    <strong>Catatan:</strong> Untuk keperluan mendesak, silakan hubungi ruang BK secara langsung atau melalui telepon sekolah.
+                    <strong>Catatan:</strong> Untuk keperluan mendesak, silakan
+                    hubungi ruang BK secara langsung atau melalui telepon
+                    sekolah.
                   </p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div >
-
-
-    </div >
+      </div>
+    </div>
   );
 };
 

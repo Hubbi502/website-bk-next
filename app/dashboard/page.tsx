@@ -15,7 +15,7 @@ interface Visit {
   visitDate: string;
   visitTime: string;
   reason: string;
-  status: "pending" | "approved" | "completed" | "cancelled";
+  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled";
   notes?: string;
   approvedBy?: string;
   createdAt: string;
@@ -125,6 +125,7 @@ const Dashboard = () => {
     const variants: Record<string, any> = {
       pending: { variant: "secondary", icon: Clock, text: "Pending" },
       approved: { variant: "default", icon: CheckCircle, text: "Disetujui" },
+      forwarded: { variant: "default", icon: Clock, text: "Diserahkan" },
       completed: { variant: "default", icon: CheckCircle, text: "Selesai" },
       cancelled: { variant: "destructive", icon: XCircle, text: "Dibatalkan" }
     };
@@ -162,7 +163,7 @@ const Dashboard = () => {
       activeTab={activeTab}
       setActiveTab={setActiveTab}
       articlesCount={articles.length}
-      pendingVisitsCount={visits.filter(v => v.status === "pending").length}
+      pendingVisitsCount={visits.filter(v => v.status === "pending" || v.status === "forwarded").length}
       currentPageTitle={currentPageTitle}
     >
       {activeTab === "overview" && (
@@ -189,6 +190,7 @@ const Dashboard = () => {
           visits={visits}
           loadVisits={loadVisits}
           getStatusBadge={getStatusBadge}
+          adminData={adminData}
         />
       )}
 
