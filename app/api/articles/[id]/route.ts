@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import cloudinary, { getPublicIdFromUrl } from "@/lib/cloudinary";
 
 // GET - Mengambil artikel berdasarkan ID
 export async function GET(
@@ -192,6 +193,17 @@ export async function DELETE(
         },
         { status: 404 }
       );
+    }
+
+    // Delete image dari Cloudinary jika ada
+    const publicId = getPublicIdFromUrl(existingArticle.image);
+    if (publicId) {
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (imgError) {
+        console.error("Error deleting image from Cloudinary:", imgError);
+        // Tetap lanjut hapus artikel meski gagal hapus gambar
+      }
     }
 
     // Delete artikel

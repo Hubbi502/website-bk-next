@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { existsSync } from "fs";
+import cloudinary from "@/lib/cloudinary";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,35 +31,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Buat nama file unik
+    // Convert file ke base64 data URI untuk upload ke Cloudinary
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const base64 = buffer.toString("base64");
+    const dataUri = `data:${file.type};base64,${base64}`;
 
-    // Generate nama file unik dengan timestamp
-    const timestamp = Date.now();
-    const originalName = file.name.replace(/\s+/g, "-");
-    const fileName = `${timestamp}-${originalName}`;
-    
-    // Path untuk menyimpan file
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "articles");
-    const filePath = path.join(uploadDir, fileName);
-
-    // Buat direktori jika belum ada
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
-    // Simpan file
-    await writeFile(filePath, buffer);
-
-    // Return URL path yang bisa diakses
-    const fileUrl = `/uploads/articles/${fileName}`;
+    // Upload ke Cloudinary
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder: "website-bk/articles",
+      resource_type: "image",
+    });
 
     return NextResponse.json({
       success: true,
       data: {
-        url: fileUrl,
-        fileName: fileName,
+        url: result.secure_url,
+        fileName: result.public_id,
       },
     });
   } catch (error) {
