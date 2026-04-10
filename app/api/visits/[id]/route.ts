@@ -34,6 +34,18 @@ export async function GET(
             role: true,
           },
         },
+        assignedAdmin: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+        visitNotesTimeline: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
       },
     });
 
@@ -75,6 +87,15 @@ export async function GET(
       } : null,
       delegationStatus: visit.delegationStatus?.toLowerCase() || null,
       delegationNotes: visit.delegationNotes,
+      assignedAdminId: visit.assignedAdminId,
+      assignedAdmin: visit.assignedAdmin ? {
+        id: visit.assignedAdmin.id,
+        name: visit.assignedAdmin.name,
+        role: visit.assignedAdmin.role,
+      } : null,
+      rejectedAdminIds: visit.rejectedAdminIds || [],
+      delegationStep: visit.delegationStep || 0,
+      visitNotesTimeline: visit.visitNotesTimeline || [],
       createdAt: visit.createdAt.toISOString(),
       updatedAt: visit.updatedAt.toISOString(),
     };
@@ -207,6 +228,13 @@ export async function PUT(
             role: true,
           },
         },
+        assignedAdmin: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -245,6 +273,14 @@ export async function PUT(
       } : null,
       delegationStatus: updatedVisit.delegationStatus?.toLowerCase() || null,
       delegationNotes: updatedVisit.delegationNotes,
+      assignedAdminId: updatedVisit.assignedAdminId,
+      assignedAdmin: updatedVisit.assignedAdmin ? {
+        id: updatedVisit.assignedAdmin.id,
+        name: updatedVisit.assignedAdmin.name,
+        role: updatedVisit.assignedAdmin.role,
+      } : null,
+      rejectedAdminIds: updatedVisit.rejectedAdminIds || [],
+      delegationStep: updatedVisit.delegationStep || 0,
       createdAt: updatedVisit.createdAt.toISOString(),
       updatedAt: updatedVisit.updatedAt.toISOString(),
     };

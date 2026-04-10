@@ -56,15 +56,16 @@ export default function StudentAuthModal({
         throw new Error(data.error || "Login failed");
       }
 
-      // Save to localStorage
-      localStorage.setItem("studentData", JSON.stringify(data.data));
+      // Save to localStorage (cookie httpOnly sudah di-set server)
+      localStorage.setItem("studentData", JSON.stringify(data.student));
+      localStorage.setItem("studentToken", data.token);
 
       toast({
         title: "Berhasil",
         description: "Login berhasil!",
       });
 
-      onSuccess(data.data);
+      onSuccess(data.student);
       onClose();
       setLoginForm({ email: "", password: "" });
     } catch (error: any) {

@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
       image: article.image,
       category: article.category,
       readTime: article.readTime,
+      pdfUrl: article.pdfUrl,
+      pdfFileName: article.pdfFileName,
       author: article.author.name,
       date: article.createdAt.toISOString().split("T")[0],
       createdAt: article.createdAt.toISOString(),
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, excerpt, content, image, category, readTime, authorId } = body;
+    const { title, excerpt, content, image, category, readTime, authorId, pdfUrl, pdfFileName } = body;
 
     // Validasi input
     if (!title || !excerpt || !content || !authorId) {
@@ -76,6 +78,8 @@ export async function POST(request: NextRequest) {
         image: image || "https://images.unsplash.com/photo-1497633762265-9d179a990aa6",
         category: category || "General",
         readTime: readTime || "5 min read",
+        pdfUrl: pdfUrl || null,
+        pdfFileName: pdfFileName || null,
         authorId: authorId,
       },
       include: {
@@ -98,6 +102,8 @@ export async function POST(request: NextRequest) {
       image: newArticle.image,
       category: newArticle.category,
       readTime: newArticle.readTime,
+      pdfUrl: newArticle.pdfUrl,
+      pdfFileName: newArticle.pdfFileName,
       author: newArticle.authorId,
       date: newArticle.createdAt.toISOString().split("T")[0],
       createdAt: newArticle.createdAt.toISOString(),

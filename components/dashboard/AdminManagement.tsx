@@ -318,8 +318,8 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
                             admin.role === "SUPER_ADMIN" ? "default" : "secondary"
                           }
                           className={`gap-1.5 pl-1.5 pr-2.5 py-0.5 border ${admin.role === "SUPER_ADMIN"
-                              ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-indigo-200"
-                              : "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200"
+                            ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-indigo-200"
+                            : "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200"
                             }`}
                         >
                           {admin.role === "SUPER_ADMIN" ? (
@@ -380,7 +380,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
 
       {/* Create Admin Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none shadow-xl">
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none shadow-xl bg-white">
           <DialogHeader className="p-6 pb-2 bg-slate-50 border-b border-slate-100">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -395,7 +395,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
 
           <div className="p-6 space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-slate-700">Nama Lengkap</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-slate-900 dark:text-slate-900">Nama Lengkap</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -412,7 +412,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-slate-700">Username</Label>
+                <Label htmlFor="username" className="text-sm font-medium text-slate-900 dark:text-slate-900">Username</Label>
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center text-slate-400 font-bold text-xs">@</div>
                   <Input
@@ -428,7 +428,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role" className="text-sm font-medium text-slate-700">Role</Label>
+                <Label htmlFor="role" className="text-sm font-medium text-slate-900 dark:text-slate-900">Role</Label>
                 <Select
                   value={formData.role}
                   onValueChange={(value: "ADMIN" | "SUPER_ADMIN") =>
@@ -464,7 +464,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium text-slate-900 dark:text-slate-900">Password</Label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -503,7 +503,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
 
       {/* Edit Admin Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none shadow-xl">
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none shadow-xl bg-white">
           <DialogHeader className="p-6 pb-2 bg-slate-50 border-b border-slate-100">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
@@ -518,7 +518,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
 
           <div className="p-6 space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="edit-name" className="text-sm font-medium text-slate-700">Nama Lengkap</Label>
+              <Label htmlFor="edit-name" className="text-sm font-medium text-slate-900 dark:text-slate-900">Nama Lengkap</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -535,7 +535,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-username" className="text-sm font-medium text-slate-700">Username</Label>
+                <Label htmlFor="edit-username" className="text-sm font-medium text-slate-900 dark:text-slate-900">Username</Label>
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center text-slate-400 font-bold text-xs">@</div>
                   <Input
@@ -551,7 +551,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-role" className="text-sm font-medium text-slate-700">Role</Label>
+                <Label htmlFor="edit-role" className="text-sm font-medium text-slate-900 dark:text-slate-900">Role</Label>
                 <Select
                   value={formData.role}
                   onValueChange={(value: "ADMIN" | "SUPER_ADMIN") =>
@@ -587,7 +587,7 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-password" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="edit-password" className="text-sm font-medium text-slate-900 dark:text-slate-900">
                 Password Baru <span className="text-slate-400 font-normal text-xs ml-1">(Opsional)</span>
               </Label>
               <div className="relative">

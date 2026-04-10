@@ -51,6 +51,8 @@ export async function GET(
       image: article.image,
       category: article.category,
       readTime: article.readTime,
+      pdfUrl: article.pdfUrl,
+      pdfFileName: article.pdfFileName,
       author: article.author.name,
       date: article.createdAt.toISOString().split("T")[0],
       createdAt: article.createdAt.toISOString(),
@@ -92,7 +94,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, excerpt, content, image, category, readTime } = body;
+    const { title, excerpt, content, image, category, readTime, pdfUrl, pdfFileName } = body;
 
     // Check if article exists
     const existingArticle = await prisma.article.findUnique({
@@ -119,6 +121,8 @@ export async function PUT(
         ...(image && { image }),
         ...(category && { category }),
         ...(readTime && { readTime }),
+        ...(pdfUrl !== undefined && { pdfUrl }),
+        ...(pdfFileName !== undefined && { pdfFileName }),
       },
       include: {
         author: {
@@ -139,6 +143,8 @@ export async function PUT(
       image: updatedArticle.image,
       category: updatedArticle.category,
       readTime: updatedArticle.readTime,
+      pdfUrl: updatedArticle.pdfUrl,
+      pdfFileName: updatedArticle.pdfFileName,
       author: updatedArticle.author.name,
       date: updatedArticle.createdAt.toISOString().split("T")[0],
       createdAt: updatedArticle.createdAt.toISOString(),

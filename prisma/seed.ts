@@ -13,18 +13,75 @@ const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({
   adapter,
-  log: ["query", "error", "warn"],
+  log: ["error", "warn"],
 });
+
+// ===== DATA KELAS =====
+const grades = ["X", "XI", "XII"];
+const majors = ["RPL", "DKV", "SIJA"];
+const classNumbers = [1, 2];
+
+// Generate semua kelas: X RPL 1, X RPL 2, X DKV 1, ... XII SIJA 2
+const allClasses: string[] = [];
+for (const grade of grades) {
+  for (const major of majors) {
+    for (const num of classNumbers) {
+      allClasses.push(`${grade} ${major} ${num}`);
+    }
+  }
+}
+
+// ===== DATA NAMA MURID (90 nama unik, 5 per kelas) =====
+const studentNames = [
+  // X RPL 1
+  "Andi Pratama", "Bella Safitri", "Candra Wijaya", "Dina Maharani", "Eko Saputra",
+  // X RPL 2
+  "Fitri Handayani", "Galih Ramadhan", "Hana Pertiwi", "Irfan Maulana", "Julia Anggraini",
+  // X DKV 1
+  "Kevin Aditya", "Lestari Dewi", "Muhammad Rizki", "Nadia Putri", "Oscar Firmansyah",
+  // X DKV 2
+  "Putri Rahayu", "Qori Ahsan", "Rina Wulandari", "Satria Nugroho", "Tiara Kusuma",
+  // X SIJA 1
+  "Umar Faruq", "Vina Oktaviani", "Wahyu Hidayat", "Xena Puspita", "Yoga Pratama",
+  // X SIJA 2
+  "Zahra Amelia", "Arif Budiman", "Bunga Citra", "Cahyo Wibowo", "Devi Lestari",
+  // XI RPL 1
+  "Erwin Santoso", "Fani Rahmawati", "Gilang Adriansyah", "Hesti Novita", "Iwan Kurniawan",
+  // XI RPL 2
+  "Jasmine Putri", "Kurnia Adi", "Laras Sekar", "Muhamad Farel", "Nisa Aulia",
+  // XI DKV 1
+  "Oky Dermawan", "Puspita Sari", "Rangga Mahardika", "Siti Khadijah", "Taufik Hidayat",
+  // XI DKV 2
+  "Umi Kulsum", "Valdi Anggara", "Winda Permata", "Yusuf Hakim", "Zara Safira",
+  // XI SIJA 1
+  "Agus Setiawan", "Bintang Pramudya", "Cindy Aurellia", "Dimas Ardianto", "Eva Susanti",
+  // XI SIJA 2
+  "Fajar Nugraha", "Gita Nirmala", "Hendri Gunawan", "Intan Permatasari", "Joko Widodo",
+  // XII RPL 1
+  "Kartika Sari", "Lukman Hakim", "Maya Angelina", "Naufal Rafif", "Olivia Putri",
+  // XII RPL 2
+  "Pandu Wicaksono", "Qonita Azzahra", "Rendi Mahendra", "Sinta Dewi", "Tegar Priyambodo",
+  // XII DKV 1
+  "Ulfa Mariana", "Vino Bastian", "Wulan Dari", "Xavier Nugroho", "Yanti Rohani",
+  // XII DKV 2
+  "Zidan Alfarizi", "Anisa Rahma", "Bayu Segara", "Cantika Putri", "Damar Sasongko",
+  // XII SIJA 1
+  "Elsa Manurung", "Farhan Alawi", "Gina Maulida", "Hadi Pranoto", "Ika Nurjannah",
+  // XII SIJA 2
+  "Jihan Salsabila", "Krisna Murti", "Lina Marlina", "Mahesa Putra", "Nur Aini",
+];
 
 async function main() {
   console.log("🌱 Seeding database...");
+  console.log(`📚 Total kelas: ${allClasses.length}`);
+  console.log(`👨‍🎓 Total murid: ${studentNames.length}`);
 
   // Hash passwords
   const adminPassword = await bcrypt.hash("guru123", 10);
   const studentPassword = await bcrypt.hash("siswa123", 10);
 
   // ===== CREATE ADMINS =====
-  console.log("👤 Creating admins...");
+  console.log("\n👤 Creating admins...");
   
   const superAdmin = await prisma.admin.upsert({
     where: { username: "superadmin" },
@@ -38,6 +95,7 @@ async function main() {
     },
   });
 
+  // Guru BK 1 - Kelas X (RPL, DKV, SIJA)
   const admin1 = await prisma.admin.upsert({
     where: { username: "guru.bk1" },
     update: {},
@@ -46,10 +104,11 @@ async function main() {
       username: "guru.bk1",
       password: adminPassword,
       role: "ADMIN",
-      assignedClasses: ["10A", "10B", "10C"],
+      assignedClasses: allClasses.filter((c) => c.startsWith("X ")),
     },
   });
 
+  // Guru BK 2 - Kelas XI (RPL, DKV, SIJA)
   const admin2 = await prisma.admin.upsert({
     where: { username: "guru.bk2" },
     update: {},
@@ -58,10 +117,11 @@ async function main() {
       username: "guru.bk2",
       password: adminPassword,
       role: "ADMIN",
-      assignedClasses: ["11A", "11B", "11C"],
+      assignedClasses: allClasses.filter((c) => c.startsWith("XI ")),
     },
   });
 
+  // Guru BK 3 - Kelas XII (RPL, DKV, SIJA)
   const admin3 = await prisma.admin.upsert({
     where: { username: "guru.bk3" },
     update: {},
@@ -70,70 +130,38 @@ async function main() {
       username: "guru.bk3",
       password: adminPassword,
       role: "ADMIN",
-      assignedClasses: ["12A", "12B", "12C"],
+      assignedClasses: allClasses.filter((c) => c.startsWith("XII ")),
     },
   });
 
-  // ===== CREATE STUDENTS =====
-  console.log("👨‍🎓 Creating students...");
+  // ===== CREATE STUDENTS (5 per kelas, 90 total) =====
+  console.log("👨‍🎓 Creating students (5 per kelas)...");
   
-  const students = await Promise.all([
-    prisma.student.upsert({
-      where: { nisn: "0012345678" },
-      update: {},
-      create: {
-        name: "Andi Pratama",
-        nisn: "0012345678",
-        password: studentPassword,
-        class: "10A",
-        phone: "081234567890",
-      },
-    }),
-    prisma.student.upsert({
-      where: { nisn: "0012345679" },
-      update: {},
-      create: {
-        name: "Budi Santoso",
-        nisn: "0012345679",
-        password: studentPassword,
-        class: "10B",
-        phone: "081234567891",
-      },
-    }),
-    prisma.student.upsert({
-      where: { nisn: "0012345680" },
-      update: {},
-      create: {
-        name: "Citra Dewi",
-        nisn: "0012345680",
-        password: studentPassword,
-        class: "11A",
-        phone: "081234567892",
-      },
-    }),
-    prisma.student.upsert({
-      where: { nisn: "0012345681" },
-      update: {},
-      create: {
-        name: "Dinda Putri",
-        nisn: "0012345681",
-        password: studentPassword,
-        class: "11B",
-        phone: "081234567893",
-      },
-    }),
-    prisma.student.upsert({
-      where: { nisn: "0012345682" },
-      update: {},
-      create: {
-        name: "Eko Wijaya",
-        nisn: "0012345682",
-        password: studentPassword,
-        class: "12A",
-        phone: "081234567894",
-      },
-    }),
-  ]);
+  const students = [];
+  let nisnCounter = 1;
+
+  for (let classIdx = 0; classIdx < allClasses.length; classIdx++) {
+    const className = allClasses[classIdx];
+    for (let i = 0; i < 5; i++) {
+      const studentIdx = classIdx * 5 + i;
+      const nisn = `00${String(nisnCounter).padStart(8, "0")}`;
+      const phone = `0812${String(nisnCounter).padStart(8, "0")}`;
+
+      const student = await prisma.student.upsert({
+        where: { nisn },
+        update: {},
+        create: {
+          name: studentNames[studentIdx],
+          nisn,
+          password: studentPassword,
+          class: className,
+          phone,
+        },
+      });
+      students.push(student);
+      nisnCounter++;
+    }
+  }
 
   // ===== CREATE ARTICLES =====
   console.log("📝 Creating articles...");
@@ -434,7 +462,7 @@ Guru BK siap membantumu dalam konsultasi perencanaan karir!`,
         reason: "Ingin curhat tentang masalah keluarga.",
         status: "PENDING",
         studentName: "Siswa Anonymous",
-        class: "11C",
+        class: "XI DKV 1",
         email: "anonymous@student.com",
         phone: "081234567899",
         targetTeacherId: admin3.id,
@@ -467,10 +495,14 @@ Guru BK siap membantumu dalam konsultasi perencanaan karir!`,
   console.log(`   - ${admin2.name} (${admin2.username}) - ${admin2.role} - Kelas: ${admin2.assignedClasses.join(", ")}`);
   console.log(`   - ${admin3.name} (${admin3.username}) - ${admin3.role} - Kelas: ${admin3.assignedClasses.join(", ")}`);
   
-  console.log("\n👨‍🎓 Students:");
-  students.forEach(s => {
-    console.log(`   - ${s.name} (NISN: ${s.nisn}) - Kelas: ${s.class}`);
-  });
+  console.log(`\n👨‍🎓 Students: ${students.length} total (5 per kelas × ${allClasses.length} kelas)`);
+  for (const className of allClasses) {
+    const classStudents = students.filter(s => s.class === className);
+    console.log(`   📘 ${className}:`);
+    classStudents.forEach(s => {
+      console.log(`      - ${s.name} (NISN: ${s.nisn})`);
+    });
+  }
   
   console.log("\n📝 Articles:");
   articles.forEach(a => {

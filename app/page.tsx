@@ -6,19 +6,41 @@ import Navbar from "@/components/Navbar";
 import ArticleCard from "@/components/ArticleCard";
 import heroBanner from "@/assets/hero-banner.jpg";
 
+import prisma from "@/lib/prisma";
+
 async function getLatestArticles() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/articles`, {
-      cache: 'no-store',
+    const articles = await prisma.article.findMany({
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 3,
     });
-    
-    if (!response.ok) {
-      return [];
-    }
-    
-    const data = await response.json();
-    return data.success ? data.data.slice(0, 3) : [];
+
+    return articles.map((article) => ({
+      id: article.id,
+      title: article.title,
+      excerpt: article.excerpt,
+      content: article.content,
+      image: article.image,
+      category: article.category,
+      readTime: article.readTime,
+      pdfUrl: article.pdfUrl,
+      pdfFileName: article.pdfFileName,
+      author: article.author.name,
+      date: article.createdAt.toISOString().split("T")[0],
+      createdAt: article.createdAt.toISOString(),
+      updatedAt: article.updatedAt.toISOString(),
+    }));
   } catch (error) {
     console.error('Error fetching articles:', error);
     return [];

@@ -7,8 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, EyeOff, User, Lock, GraduationCap, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, User, Lock, GraduationCap, ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const StudentLogin = () => {
   const [name, setName] = useState("");
@@ -17,6 +26,8 @@ const StudentLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
+  const [unauthorizedMessage, setUnauthorizedMessage] = useState("");
   const router = useRouter();
   const { toast } = useToast();
 
@@ -26,7 +37,7 @@ const StudentLogin = () => {
 
     try {
       const endpoint = isRegisterMode ? "/api/auth/student/register" : "/api/auth/student/login";
-      const body = isRegisterMode 
+      const body = isRegisterMode
         ? { name, nisn, password }
         : { nisn, password };
 
@@ -43,11 +54,11 @@ const StudentLogin = () => {
       if (response.ok && data.success) {
         toast({
           title: isRegisterMode ? "Registrasi Berhasil" : "Login Berhasil",
-          description: isRegisterMode 
+          description: isRegisterMode
             ? "Akun Anda telah dibuat. Silakan login."
             : `Selamat datang, ${data.student.name}!`,
         });
-        
+
         if (!isRegisterMode) {
           localStorage.setItem("studentData", JSON.stringify(data.student));
           router.push("/schedule");
@@ -57,11 +68,20 @@ const StudentLogin = () => {
           setPassword("");
         }
       } else {
-        toast({
-          title: isRegisterMode ? "Registrasi Gagal" : "Login Gagal",
-          description: data.error || "Terjadi kesalahan. Silakan coba lagi.",
-          variant: "destructive",
-        });
+        if (response.status === 401) {
+          setUnauthorizedMessage(
+            isRegisterMode
+              ? "Maaf, pendaftaran Anda tidak dapat diproses. Pastikan data pendaftaran Anda valid dan belum terdaftar di sistem."
+              : "Maaf, NISN atau kata sandi yang Anda masukkan salah. Mohon periksa kembali kredensial Anda."
+          );
+          setShowUnauthorized(true);
+        } else {
+          toast({
+            title: isRegisterMode ? "Registrasi Gagal" : "Login Gagal",
+            description: data.error || "Terjadi kesalahan. Silakan coba lagi.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Auth error:", error);
@@ -100,20 +120,20 @@ const StudentLogin = () => {
               <GraduationCap className="w-10 h-10 text-white" />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <CardTitle className="text-3xl font-bold text-center text-gray-900">
               {isRegisterMode ? "Registrasi Murid" : "Portal Murid"}
             </CardTitle>
             <CardDescription className="text-center text-base text-gray-700 font-medium">
-              {isRegisterMode 
+              {isRegisterMode
                 ? "Buat akun untuk mengakses layanan konseling"
                 : "Akses jadwal konseling dan layanan BK"
               }
             </CardDescription>
           </div>
         </CardHeader>
-        
+
         <CardContent className="pb-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name Field - Only for Register */}
@@ -207,7 +227,7 @@ const StudentLogin = () => {
             </Button>
 
 
-            
+
             {/* Info Section */}
             <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
               <div className="flex items-start gap-2">
@@ -217,7 +237,7 @@ const StudentLogin = () => {
                 <div className="text-sm text-gray-800">
                   <p className="font-bold mb-1 text-gray-900">Informasi Login Murid</p>
                   <p className="text-xs text-gray-700 leading-relaxed font-medium">
-                    {isRegisterMode 
+                    {isRegisterMode
                       ? "Daftar dengan NISN dan password untuk mengakses layanan konseling."
                       : "Gunakan NISN dan password yang telah didaftarkan untuk mengakses jadwal konseling."
                     }
@@ -233,6 +253,29 @@ const StudentLogin = () => {
       <div className="absolute bottom-4 left-0 right-0 text-center text-white/80 text-sm z-10">
         <p>© 2025 Sistem Bimbingan dan Konseling</p>
       </div>
+
+      <AlertDialog open={showUnauthorized} onOpenChange={setShowUnauthorized}>
+        <AlertDialogContent className="bg-white border-red-200 shadow-2xl rounded-2xl w-[90vw] max-w-md sm:rounded-2xl p-6">
+          <AlertDialogHeader className="flex flex-col items-center gap-3 space-y-0">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-2">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+            <AlertDialogTitle className="text-xl font-bold text-gray-900 text-center">
+              {isRegisterMode ? "Pendaftaran Gagal" : "Login Gagal"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-[15px] leading-relaxed text-center">
+              {unauthorizedMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center mt-6">
+            <AlertDialogAction onClick={() => setShowUnauthorized(false)} className="w-full sm:w-auto px-10 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium h-11 transition-colors">
+              Coba Lagi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

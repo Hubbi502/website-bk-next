@@ -20,6 +20,8 @@ interface Article {
   image: string;
   category: string;
   readTime: string;
+  pdfUrl?: string;
+  pdfFileName?: string;
   author: string;
   date: string;
   createdAt?: string;
@@ -40,13 +42,18 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
   const [isUploading, setIsUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfFileName, setPdfFileName] = useState<string>("");
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
   const [articleForm, setArticleForm] = useState({
     title: "",
     excerpt: "",
     content: "",
     image: "",
     category: "Mental Health",
-    readTime: "5 min read"
+    readTime: "5 min read",
+    pdfUrl: "",
+    pdfFileName: ""
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,6 +121,69 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
     }
   };
 
+  const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validasi tipe file
+      if (file.type !== "application/pdf") {
+        toast({
+          title: "Error",
+          description: "Tipe file tidak valid. Hanya file PDF yang diperbolehkan",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validasi ukuran (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Ukuran file terlalu besar. Maksimal 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setPdfFile(file);
+      setPdfFileName(file.name);
+    }
+  };
+
+  const uploadPdf = async (): Promise<{ url: string; fileName: string } | null> => {
+    if (!pdfFile) return null;
+
+    setIsUploadingPdf(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", pdfFile);
+
+      const response = await fetch("/api/upload-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal mengupload PDF");
+      }
+
+      return {
+        url: data.data.url,
+        fileName: data.data.fileName,
+      };
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengupload PDF",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsUploadingPdf(false);
+    }
+  };
+
   const handleAddArticle = async () => {
     if (!articleForm.title || !articleForm.excerpt || !articleForm.content) {
       toast({
@@ -145,6 +215,17 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
         imageUrl = uploadedUrl;
       }
 
+      // Upload PDF jika ada
+      let pdfUrl = null;
+      let pdfName = null;
+      if (pdfFile) {
+        const pdfData = await uploadPdf();
+        if (pdfData) {
+          pdfUrl = pdfData.url;
+          pdfName = pdfData.fileName;
+        }
+      }
+
       const response = await fetch("/api/articles", {
         method: "POST",
         headers: {
@@ -157,6 +238,8 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
           image: imageUrl,
           category: articleForm.category,
           readTime: articleForm.readTime,
+          pdfUrl: pdfUrl,
+          pdfFileName: pdfName,
           authorId: adminData?.id,
         }),
       });
@@ -168,9 +251,11 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
       }
 
       await loadArticles();
-      setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read" });
+      setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read", pdfUrl: "", pdfFileName: "" });
       setImageFile(null);
       setImagePreview("");
+      setPdfFile(null);
+      setPdfFileName("");
       setIsAddArticleOpen(false);
 
       toast({
@@ -196,10 +281,14 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
       content: article.content,
       image: article.image,
       category: article.category || "Mental Health",
-      readTime: article.readTime || "5 min read"
+      readTime: article.readTime || "5 min read",
+      pdfUrl: article.pdfUrl || "",
+      pdfFileName: article.pdfFileName || ""
     });
     setImagePreview(article.image);
     setImageFile(null);
+    setPdfFile(null);
+    setPdfFileName(article.pdfFileName || "");
     setIsAddArticleOpen(true);
   };
 
@@ -218,6 +307,17 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
         imageUrl = uploadedUrl;
       }
 
+      // Upload PDF baru jika ada file baru
+      let pdfUrl = articleForm.pdfUrl;
+      let pdfName = articleForm.pdfFileName;
+      if (pdfFile) {
+        const pdfData = await uploadPdf();
+        if (pdfData) {
+          pdfUrl = pdfData.url;
+          pdfName = pdfData.fileName;
+        }
+      }
+
       const response = await fetch(`/api/articles/${editingArticle.id}`, {
         method: "PUT",
         headers: {
@@ -226,6 +326,8 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
         body: JSON.stringify({
           ...articleForm,
           image: imageUrl,
+          pdfUrl: pdfUrl,
+          pdfFileName: pdfName,
         }),
       });
 
@@ -237,9 +339,11 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
 
       await loadArticles();
       setEditingArticle(null);
-      setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read" });
+      setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read", pdfUrl: "", pdfFileName: "" });
       setImageFile(null);
       setImagePreview("");
+      setPdfFile(null);
+      setPdfFileName("");
       setIsAddArticleOpen(false);
 
       toast({
@@ -302,9 +406,11 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
               <DialogTrigger asChild>
                 <Button onClick={() => {
                   setEditingArticle(null);
-                  setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read" });
+                  setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read", pdfUrl: "", pdfFileName: "" });
                   setImageFile(null);
                   setImagePreview("");
+                  setPdfFile(null);
+                  setPdfFileName("");
                 }}>
                   <Plus className="h-4 w-4 mr-2 " />
                   Tambah Artikel
@@ -501,6 +607,64 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
                           </div>
                         </CardContent>
                       </Card>
+                      <Card className="bg-white">
+                        <CardHeader>
+                          <CardTitle className="text-gray-800">File PDF (Opsional)</CardTitle>
+                          <CardDescription>Upload file PDF sebagai lampiran artikel.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <Label htmlFor="pdf" className="text-sm font-semibold flex items-center gap-2 text-gray-700">
+                              Upload PDF
+                            </Label>
+                            <div className="space-y-3">
+                              <Input
+                                id="pdf"
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handlePdfChange}
+                                disabled={isLoading || isUploadingPdf}
+                                className="h-11 text-gray-900 bg-gray-50 border-gray-200 focus:bg-white cursor-pointer"
+                              />
+                              <p className="text-xs text-gray-500">Format: PDF (Max: 10MB)</p>
+                              {isUploadingPdf && (
+                                <div className="flex items-center gap-2 text-sm text-sky-600">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Mengupload PDF...
+                                </div>
+                              )}
+                              {(pdfFileName || articleForm.pdfFileName) && (
+                                <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="flex items-center justify-between py-3 px-3">
+                                    <div className="flex items-center gap-2">
+                                      <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                                      </svg>
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-700">{pdfFileName || articleForm.pdfFileName}</p>
+                                        <p className="text-xs text-gray-500">File PDF terlampir</p>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        setPdfFile(null);
+                                        setPdfFileName("");
+                                        setArticleForm({ ...articleForm, pdfUrl: "", pdfFileName: "" });
+                                      }}
+                                      className="h-6 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      Hapus
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 </div>
@@ -511,9 +675,11 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
                     onClick={() => {
                       setIsAddArticleOpen(false);
                       setEditingArticle(null);
-                      setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read" });
+                      setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read", pdfUrl: "", pdfFileName: "" });
                       setImageFile(null);
                       setImagePreview("");
+                      setPdfFile(null);
+                      setPdfFileName("");
                     }}
                     disabled={isLoading || isUploading}
                     className="h-11 px-6"

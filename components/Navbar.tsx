@@ -48,8 +48,15 @@ const Navbar = () => {
     };
   }, [pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Hapus cookie JWT di server
+      await fetch("/api/auth/student/logout", { method: "POST" });
+    } catch (e) {
+      // abaikan error jaringan
+    }
     localStorage.removeItem("studentData");
+    localStorage.removeItem("studentToken");
     setIsStudentLoggedIn(false);
     setStudentData(null);
     window.location.href = "/";

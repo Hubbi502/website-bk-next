@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { pusherServer, VISIT_CHANNEL, VISIT_BOOKED_EVENT } from "@/lib/pusher";
 
 // GET - Mengambil kunjungan (filter berdasarkan studentId atau teacherId)
 export async function GET(request: NextRequest) {
@@ -26,10 +27,12 @@ export async function GET(request: NextRequest) {
     } else if (teacherId) {
       // Admin biasa bisa melihat:
       // 1. Visits yang ditujukan kepada mereka
-      // 2. Visits yang didelegasikan ke mereka
+      // 2. Visits yang didelegasikan ke mereka (legacy)
+      // 3. Visits yang di-assign ke mereka (delegasi baru)
       whereClause.OR = [
         { targetTeacherId: teacherId },
         { delegatedToTeacherId: teacherId },
+        { assignedAdminId: teacherId },
       ];
     }
 
@@ -55,6 +58,18 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             role: true,
+          },
+        },
+        assignedAdmin: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+        visitNotesTimeline: {
+          orderBy: {
+            createdAt: 'asc',
           },
         },
       },
@@ -91,6 +106,15 @@ export async function GET(request: NextRequest) {
       } : null,
       delegationStatus: visit.delegationStatus?.toLowerCase() || null,
       delegationNotes: visit.delegationNotes,
+      assignedAdminId: visit.assignedAdminId,
+      assignedAdmin: visit.assignedAdmin ? {
+        id: visit.assignedAdmin.id,
+        name: visit.assignedAdmin.name,
+        role: visit.assignedAdmin.role,
+      } : null,
+      rejectedAdminIds: visit.rejectedAdminIds || [],
+      delegationStep: visit.delegationStep || 0,
+      visitNotesTimeline: visit.visitNotesTimeline || [],
       createdAt: visit.createdAt.toISOString(),
       updatedAt: visit.updatedAt.toISOString(),
     }));
@@ -179,6 +203,15 @@ export async function POST(request: NextRequest) {
         phone: studentData ? studentData.phone : phone,
       },
     });
+
+    // Trigger Pusher event agar user lain tahu slot ini sudah terisi
+    if (targetTeacherId) {
+      await pusherServer.trigger(VISIT_CHANNEL, VISIT_BOOKED_EVENT, {
+        teacherId: targetTeacherId,
+        visitDate,
+        visitTime,
+      });
+    }
 
     return NextResponse.json({
       success: true,

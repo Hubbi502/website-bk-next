@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { signStudentToken, STUDENT_TOKEN_COOKIE } from "@/lib/jwt";
 
 // POST - Login student
 export async function POST(request: Request) {
@@ -38,14 +39,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // Return student data (exclude password)
+    // Return student data (exclude password) + JWT token
     const { password: _, ...studentData } = student;
 
-    return NextResponse.json({
+    const token = signStudentToken({
+      id: student.id,
+      nisn: student.nisn,
+      name: student.name,
+      class: student.class,
+    });
+
+    const res = NextResponse.json({
       success: true,
       message: "Login berhasil",
       student: studentData,
+      token,
     });
+
+    // Set JWT sebagai httpOnly cookie
+    res.cookies.set(STUDENT_TOKEN_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+      path: "/",
+    });
+
+    return res;
   } catch (error) {
     console.error("Error logging in student:", error);
     return NextResponse.json(

@@ -1,22 +1,32 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { verifyStudentToken, STUDENT_TOKEN_COOKIE } from "@/lib/jwt";
 
-// GET - Get current student info
-export async function GET(request: Request) {
+// GET - Get current student info (requires JWT)
+export async function GET(request: NextRequest) {
   try {
-    // Get student ID from query params or headers
-    const { searchParams } = new URL(request.url);
-    const studentId = searchParams.get("id");
+    // Ambil token dari cookie httpOnly atau header Authorization
+    const cookieToken = request.cookies.get(STUDENT_TOKEN_COOKIE)?.value;
+    const headerToken = request.headers.get("authorization")?.replace("Bearer ", "");
+    const token = cookieToken || headerToken;
 
-    if (!studentId) {
+    if (!token) {
       return NextResponse.json(
-        { error: "Student ID is required" },
-        { status: 400 }
+        { error: "Unauthorized: token tidak ditemukan" },
+        { status: 401 }
+      );
+    }
+
+    const payload = verifyStudentToken(token);
+    if (!payload) {
+      return NextResponse.json(
+        { error: "Unauthorized: token tidak valid atau sudah kadaluarsa" },
+        { status: 401 }
       );
     }
 
     const student = await prisma.student.findUnique({
-      where: { id: studentId },
+      where: { id: payload.id },
       select: {
         id: true,
         name: true,

@@ -34,6 +34,7 @@ model Admin {
   visits          Visit[] // Visits yang diapprove oleh admin ini
   targetedVisits  Visit[]   @relation("TargetTeacher") // Visits yang ditujukan ke guru ini
   delegatedVisits Visit[]   @relation("DelegatedTeacher") // Visits yang didelegasikan ke guru ini
+  assignedVisits  Visit[]   @relation("AssignedVisits") // Visits yang saat ini di-assign ke guru ini (delegasi baru)
 
   @@map("admins")
 }
@@ -57,17 +58,19 @@ model Student {
 
 // Model untuk Artikel
 model Article {
-  id        String   @id @default(cuid())
-  title     String
-  excerpt   String   @db.Text
-  content   String   @db.Text
-  image     String
-  category  String   @default("General")
-  readTime  String   @default("5 min read")
-  authorId  String
-  author    Admin    @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  title       String
+  excerpt     String   @db.Text
+  content     String   @db.Text
+  image       String
+  category    String   @default("General")
+  readTime    String   @default("5 min read")
+  pdfUrl      String?
+  pdfFileName String?
+  authorId    String
+  author      Admin    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   comments Comment[]
 
@@ -114,13 +117,19 @@ model Visit {
   class                  String?
   email                  String?
   phone                  String?
-  // Fields untuk delegasi ke koordinator/guru lain
+  // Fields untuk delegasi ke koordinator/guru lain (LEGACY)
   forwardedToCoordinator Boolean           @default(false)
   forwardReason          String?           @db.Text // Alasan guru menyerahkan ke koordinator
   delegatedToTeacherId   String?
   delegatedToTeacher     Admin?            @relation("DelegatedTeacher", fields: [delegatedToTeacherId], references: [id], onDelete: SetNull)
   delegationStatus       DelegationStatus?
   delegationNotes        String?           @db.Text
+  // Fields untuk delegasi baru (desentralisasi - siswa pilih guru sendiri)
+  assignedAdminId        String? // Guru BK yang saat ini ditugaskan (delegasi baru)
+  assignedAdmin          Admin?            @relation("AssignedVisits", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  rejectedAdminIds       String[]          @default([]) // Daftar ID guru yang sudah menolak
+  delegationStep         Int               @default(0) // Langkah delegasi ke-berapa
+  visitNotesTimeline     VisitNote[]
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
 
@@ -128,14 +137,31 @@ model Visit {
   @@index([studentId])
   @@index([targetTeacherId])
   @@index([delegatedToTeacherId])
+  @@index([assignedAdminId])
   @@index([status])
   @@index([visitDate])
   @@map("visits")
 }
 
+// Model untuk Timeline Catatan Kunjungan per Pertemuan
+model VisitNote {
+  id        String   @id @default(cuid())
+  visitId   String
+  visit     Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  note      String   @db.Text
+  isSolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visitId])
+  @@map("visit_notes")
+}
+
 // Enum untuk status kunjungan
 enum VisitStatus {
   PENDING
+  AWAITING_STUDENT // Menunggu keputusan siswa (guru tidak tersedia)
+  PENDING_DELEGATION // Siswa memilih lanjut, menunggu konfirmasi guru baru
   APPROVED
   FORWARDED
   COMPLETED

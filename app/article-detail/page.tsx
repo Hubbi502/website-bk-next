@@ -19,6 +19,8 @@ interface Article {
   readTime: string;
   author: string;
   date: string;
+  pdfUrl?: string;
+  pdfFileName?: string;
 }
 
 const ArticleDetailContent = () => {
@@ -127,6 +129,37 @@ const ArticleDetailContent = () => {
             alt={article.title}
             className="w-full h-[400px] object-cover rounded-xl shadow-elevated mb-8"
           />
+
+          {article.pdfUrl && (
+            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white rounded-lg shadow-sm">
+                    <svg className="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">File PDF Tersedia</h3>
+                    <p className="text-sm text-gray-600">{article.pdfFileName || "Dokumen terlampir"}</p>
+                  </div>
+                </div>
+                <a 
+                  href={article.pdfUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  download
+                >
+                  <Button className="gap-2">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download PDF
+                  </Button>
+                </a>
+              </div>
+            </div>
+          )}
 
           <div className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground">
             <p className="text-lg leading-relaxed whitespace-pre-line">{article.content}</p>

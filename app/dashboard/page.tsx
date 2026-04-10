@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Clock, CheckCircle, XCircle } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertTriangle, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
@@ -17,7 +17,7 @@ interface Visit {
   visitDate: string;
   visitTime: string;
   reason: string;
-  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled";
+  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled" | "awaiting_student" | "pending_delegation";
   notes?: string;
   approvedBy?: string;
   createdAt: string;
@@ -28,6 +28,7 @@ import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { ArticleManagement } from "@/components/dashboard/ArticleManagement";
 import { VisitManagement } from "@/components/dashboard/VisitManagement";
 import { AdminManagement } from "@/components/dashboard/AdminManagement";
+import { StudentManagement } from "@/components/dashboard/StudentManagement";
 import { isSuperAdmin } from "@/lib/permissions";
 
 interface Article {
@@ -49,7 +50,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [adminData, setAdminData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "articles" | "visits" | "admins"
+    "overview" | "articles" | "visits" | "admins" | "students"
   >("overview");
   const [articles, setArticles] = useState<Article[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
@@ -59,21 +60,42 @@ const Dashboard = () => {
     const initDashboard = async () => {
       const storedAdmin = localStorage.getItem("adminData");
       if (!storedAdmin) {
-        toast({
-          title: "Akses Ditolak",
-          description: "Silakan login terlebih dahulu",
-          variant: "destructive",
-        });
-        router.push("/login");
+        // Coba ambil data dari JWT cookie via API
+        try {
+          const res = await fetch("/api/auth/admin/me");
+          if (!res.ok) {
+            toast({
+              title: "Akses Ditolak",
+              description: "Silakan login terlebih dahulu",
+              variant: "destructive",
+            });
+            router.push("/login");
+            return;
+          }
+          const meData = await res.json();
+          const parsedAdmin = meData.admin;
+          // Simpan kembali ke localStorage
+          localStorage.setItem("adminData", JSON.stringify(parsedAdmin));
+          setAdminData(parsedAdmin);
+          await Promise.all([loadArticles(), loadVisits(parsedAdmin)]);
+        } catch {
+          toast({
+            title: "Akses Ditolak",
+            description: "Silakan login terlebih dahulu",
+            variant: "destructive",
+          });
+          router.push("/login");
+          return;
+        }
       } else {
         const parsedAdmin = JSON.parse(storedAdmin);
         setAdminData(parsedAdmin);
 
         // Load data in parallel
         await Promise.all([loadArticles(), loadVisits(parsedAdmin)]);
-
-        setIsLoading(false);
       }
+
+      setIsLoading(false);
     };
 
     initDashboard();
@@ -136,13 +158,15 @@ const Dashboard = () => {
   const getStatusBadge = (status: Visit["status"]) => {
     const variants: Record<string, any> = {
       pending: { variant: "secondary", icon: Clock, text: "Pending" },
+      awaiting_student: { variant: "secondary", icon: AlertTriangle, text: "Menunggu Siswa" },
+      pending_delegation: { variant: "secondary", icon: RefreshCw, text: "Menunggu Guru" },
       approved: { variant: "default", icon: CheckCircle, text: "Disetujui" },
       forwarded: { variant: "default", icon: Clock, text: "Diserahkan" },
       completed: { variant: "default", icon: CheckCircle, text: "Selesai" },
       cancelled: { variant: "destructive", icon: XCircle, text: "Dibatalkan" },
     };
 
-    const config = variants[status];
+    const config = variants[status] || variants.pending;
     const Icon = config.icon;
 
     return (
@@ -204,6 +228,7 @@ const Dashboard = () => {
           {activeTab === "articles" && <ArticlesSkeleton />}
           {activeTab === "visits" && <VisitsSkeleton />}
           {activeTab === "admins" && <AdminsSkeleton />}
+          {activeTab === "students" && <AdminsSkeleton />}
         </div>
       </main>
     </div>
@@ -378,6 +403,7 @@ const Dashboard = () => {
     { id: "overview", label: "Overview" },
     { id: "articles", label: "Kelola Artikel" },
     { id: "visits", label: "Kunjungan Murid" },
+    { id: "students", label: "Kelola Siswa" },
   ];
 
   const currentPageTitle =
@@ -390,7 +416,7 @@ const Dashboard = () => {
       setActiveTab={setActiveTab}
       articlesCount={articles.length}
       pendingVisitsCount={
-        visits.filter((v) => v.status === "pending" || v.status === "forwarded")
+        visits.filter((v) => v.status === "pending" || v.status === "forwarded" || v.status === "awaiting_student" || v.status === "pending_delegation")
           .length
       }
       currentPageTitle={currentPageTitle}
@@ -425,6 +451,10 @@ const Dashboard = () => {
 
       {activeTab === "admins" && isSuperAdmin(adminData) && (
         <AdminManagement currentAdminId={adminData.id} />
+      )}
+
+      {activeTab === "students" && (
+        <StudentManagement adminData={adminData} />
       )}
     </DashboardLayout>
   );

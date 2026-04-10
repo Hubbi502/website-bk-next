@@ -7,14 +7,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, EyeOff, GraduationCap, Lock, User, ArrowLeft } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Lock,
+  User,
+  ArrowLeft,
+  AlertCircle,
+} from "lucide-react";
 import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
+  const [unauthorizedMessage, setUnauthorizedMessage] = useState("");
   const router = useRouter();
   const { toast } = useToast();
 
@@ -24,7 +43,7 @@ const Login = () => {
 
     try {
       // Kirim request ke API
-      const response = await fetch("/api/auth/login", { 
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,19 +59,27 @@ const Login = () => {
           title: "Login Berhasil",
           description: `Selamat datang, ${data.admin.name}! (${data.admin.role})`,
         });
-        
-        // Simpan data admin ke localStorage
+
+        // Simpan data admin & token ke localStorage (cookie httpOnly sudah di-set server)
         localStorage.setItem("adminData", JSON.stringify(data.admin));
-        
+        localStorage.setItem("adminToken", data.token);
+
         // Redirect to dashboard
         router.push("/dashboard");
       } else {
-        // Login gagal
-        toast({
-          title: "Login Gagal",
-          description: data.error || "Username atau password tidak valid.",
-          variant: "destructive",
-        });
+        if (response.status === 401) {
+          setUnauthorizedMessage(
+            "Maaf, username atau kata sandi yang Anda masukkan salah. Mohon periksa kembali dan pastikan Anda memiliki akses sebagai Guru.",
+          );
+          setShowUnauthorized(true);
+        } else {
+          // Login gagal
+          toast({
+            title: "Login Gagal",
+            description: data.error || "Username atau password tidak valid.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -91,7 +118,7 @@ const Login = () => {
               <GraduationCap className="w-10 h-10 text-white" />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <CardTitle className="text-3xl font-bold text-center text-gray-900">
               Portal Guru BK
@@ -101,12 +128,15 @@ const Login = () => {
             </CardDescription>
           </div>
         </CardHeader>
-        
+
         <CardContent className="pb-8 text-gray-800">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Username Field */}
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-semibold text-gray-800">
+              <Label
+                htmlFor="username"
+                className="text-sm font-semibold text-gray-800"
+              >
                 Username
               </Label>
               <div className="relative">
@@ -126,7 +156,10 @@ const Login = () => {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-semibold text-gray-800">
+              <Label
+                htmlFor="password"
+                className="text-sm font-semibold text-gray-800"
+              >
                 Password
               </Label>
               <div className="relative">
@@ -171,7 +204,7 @@ const Login = () => {
                 "Masuk ke Dashboard"
               )}
             </Button>
-            
+
             {/* Info Section */}
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
               <div className="flex items-start gap-2">
@@ -179,9 +212,12 @@ const Login = () => {
                   <span className="text-white text-xs font-bold">i</span>
                 </div>
                 <div className="text-sm text-gray-800">
-                  <p className="font-bold mb-1 text-gray-900">Informasi Login</p>
+                  <p className="font-bold mb-1 text-gray-900">
+                    Informasi Login
+                  </p>
                   <p className="text-xs text-gray-700 leading-relaxed font-medium">
-                    Gunakan kredensial yang telah terdaftar dalam sistem untuk mengakses dashboard guru BK.
+                    Gunakan kredensial yang telah terdaftar dalam sistem untuk
+                    mengakses dashboard guru BK.
                   </p>
                 </div>
               </div>
@@ -194,6 +230,32 @@ const Login = () => {
       <div className="absolute bottom-4 left-0 right-0 text-center text-white/80 text-sm z-10">
         <p>© 2025 Sistem Bimbingan dan Konseling</p>
       </div>
+
+      <AlertDialog open={showUnauthorized} onOpenChange={setShowUnauthorized}>
+        <AlertDialogContent className="bg-white border-red-200 shadow-2xl rounded-2xl w-[90vw] max-w-md sm:rounded-2xl p-6">
+          <AlertDialogHeader className="flex flex-col items-center gap-3 space-y-0">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-2">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+            <AlertDialogTitle className="text-xl font-bold text-gray-900 text-center">
+              Login Gagal
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-[15px] leading-relaxed text-center">
+              {unauthorizedMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center mt-6">
+            <AlertDialogAction
+              onClick={() => setShowUnauthorized(false)}
+              className="w-full sm:w-auto px-10 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium h-11 transition-colors"
+            >
+              Coba Lagi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

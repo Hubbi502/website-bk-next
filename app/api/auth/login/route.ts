@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { signAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/jwt";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
         username: true,
         password: true,
         role: true,
+        assignedClasses: true,
       },
     });
 
@@ -45,17 +47,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Login berhasil - return data admin tanpa password
+    // Login berhasil - buat JWT token
     const { password: _, ...adminData } = admin;
 
-    return NextResponse.json(
+    const token = signAdminToken({
+      id: admin.id,
+      username: admin.username,
+      name: admin.name,
+      role: admin.role,
+    });
+
+    const response = NextResponse.json(
       {
         success: true,
         message: "Login berhasil",
         admin: adminData,
+        token,
       },
       { status: 200 }
     );
+
+    // Set JWT sebagai httpOnly cookie
+    response.cookies.set(ADMIN_TOKEN_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

@@ -25,7 +25,19 @@ import {
   Forward,
   UserCheck,
   UserX,
+  Ban,
+  RefreshCw,
+  Inbox,
 } from "lucide-react";
+
+export interface VisitNote {
+  id: string;
+  visitId: string;
+  note: string;
+  isSolved: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface Visit {
   id: string;
@@ -36,8 +48,16 @@ interface Visit {
   visitDate: string;
   visitTime: string;
   reason: string;
-  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "approved"
+    | "forwarded"
+    | "completed"
+    | "cancelled"
+    | "awaiting_student"
+    | "pending_delegation";
   notes?: string;
+  visitNotesTimeline?: VisitNote[];
   approvedBy?: string;
   targetTeacherId?: string;
   targetTeacher?: {
@@ -55,6 +75,14 @@ interface Visit {
   };
   delegationStatus?: string | null;
   delegationNotes?: string | null;
+  assignedAdminId?: string;
+  assignedAdmin?: {
+    id: string;
+    name: string;
+    role: string;
+  };
+  rejectedAdminIds?: string[];
+  delegationStep?: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -86,6 +114,10 @@ export function VisitManagement({
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [visitNotes, setVisitNotes] = useState("");
+  // States untuk timeline catatan
+  const [newMeetingNote, setNewMeetingNote] = useState("");
+  const [isMeetingSolved, setIsMeetingSolved] = useState(false);
+  const [isAddingNote, setIsAddingNote] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [visitToDelete, setVisitToDelete] = useState<Visit | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -98,12 +130,6 @@ export function VisitManagement({
     useState("");
   const [delegationNotes, setDelegationNotes] = useState("");
   const [isDelegating, setIsDelegating] = useState(false);
-
-  // Forward to coordinator state
-  const [isForwardDialogOpen, setIsForwardDialogOpen] = useState(false);
-  const [visitToForward, setVisitToForward] = useState<Visit | null>(null);
-  const [forwardReason, setForwardReason] = useState("");
-  const [isForwarding, setIsForwarding] = useState(false);
 
   const isCoordinator = adminData?.role === "SUPER_ADMIN";
 
@@ -181,6 +207,8 @@ export function VisitManagement({
         pending: "Pending",
         approved: "Disetujui",
         forwarded: "Diserahkan",
+        awaiting_student: "Menunggu Keputusan Siswa",
+        pending_delegation: "Menunggu Konfirmasi Guru",
         completed: "Selesai",
         cancelled: "Dibatalkan",
       };
@@ -198,49 +226,85 @@ export function VisitManagement({
     }
   };
 
-  // Open forward dialog
-  const handleOpenForwardDialog = (visit: Visit) => {
-    setVisitToForward(visit);
-    setForwardReason("");
-    setIsForwardDialogOpen(true);
-  };
-
-  // Forward visit to coordinator with reason
-  const handleForwardToCoordinator = async () => {
-    if (!visitToForward) return;
-
-    setIsForwarding(true);
+  // --- NEW: Handle "Tidak Tersedia" (teacher marks self unavailable) ---
+  const handleMarkUnavailable = async (visit: Visit) => {
+    if (!adminData?.id) return;
     try {
-      const response = await fetch(`/api/visits/${visitToForward.id}`, {
-        method: "PUT",
+      const response = await fetch(`/api/visits/${visit.id}/unavailable`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "forward",
-          forwardReason: forwardReason || undefined,
-        }),
+        body: JSON.stringify({ adminId: adminData.id }),
       });
-
       const data = await response.json();
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Gagal menyerahkan ke koordinator");
+        throw new Error(data.error || "Gagal menandai tidak tersedia");
       }
-
       await loadVisits();
-      setIsForwardDialogOpen(false);
-      setVisitToForward(null);
       toast({
-        title: "Diserahkan ke Koordinator",
-        description:
-          "Kunjungan berhasil diserahkan ke koordinator untuk didelegasikan ke guru lain.",
+        title: "Ditandai Tidak Tersedia",
+        description: "Siswa akan diberitahu untuk memilih guru BK lain.",
       });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Gagal menyerahkan ke koordinator",
+        description: error.message || "Gagal menandai tidak tersedia",
         variant: "destructive",
       });
-    } finally {
-      setIsForwarding(false);
+    }
+  };
+
+  // --- NEW: Handle teacher approve/reject delegation ---
+  const handleTeacherApprove = async (visit: Visit) => {
+    if (!adminData?.id) return;
+    try {
+      const response = await fetch(`/api/visits/${visit.id}/teacher-response`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response: "approve", adminId: adminData.id }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal menerima delegasi");
+      }
+      await loadVisits();
+      toast({
+        title: "Delegasi Diterima",
+        description: "Kunjungan berhasil disetujui.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menerima delegasi",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTeacherReject = async (visit: Visit) => {
+    if (!adminData?.id) return;
+    try {
+      const response = await fetch(`/api/visits/${visit.id}/teacher-response`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response: "reject", adminId: adminData.id }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal menolak delegasi");
+      }
+      await loadVisits();
+      toast({
+        title: "Delegasi Ditolak",
+        description: data.data?.noTeachersAvailable
+          ? "Semua guru telah menolak. Kunjungan dibatalkan otomatis."
+          : "Siswa akan diminta memilih guru lain.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menolak delegasi",
+        variant: "destructive",
+      });
     }
   };
 
@@ -361,19 +425,33 @@ export function VisitManagement({
   const handleViewDetail = (visit: Visit) => {
     setSelectedVisit(visit);
     setVisitNotes(visit.notes || "");
+    setNewMeetingNote("");
+    setIsMeetingSolved(false);
     setIsDetailOpen(true);
   };
 
-  const handleSaveNotes = async () => {
+  const handleAddMeetingNote = async () => {
     if (!selectedVisit) return;
+    if (!newMeetingNote.trim()) {
+      toast({
+        title: "Perhatian",
+        description: "Catatan tidak boleh kosong",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setIsAddingNote(true);
     try {
-      const response = await fetch(`/api/visits/${selectedVisit.id}`, {
-        method: "PUT",
+      const response = await fetch(`/api/visits/${selectedVisit.id}/notes`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ notes: visitNotes }),
+        body: JSON.stringify({
+          note: newMeetingNote,
+          isSolved: isMeetingSolved,
+        }),
       });
 
       const data = await response.json();
@@ -382,11 +460,29 @@ export function VisitManagement({
         throw new Error(data.error || "Gagal menyimpan catatan");
       }
 
-      await loadVisits();
-      setIsDetailOpen(false);
+      // If solved, also update the main visit status
+      if (isMeetingSolved && selectedVisit.status !== "completed") {
+        await handleUpdateVisitStatus(selectedVisit.id, "completed");
+      } else {
+        await loadVisits();
+      }
+
+      // Update selectedVisit manually to show new note in UI instantly
+      setSelectedVisit({
+        ...selectedVisit,
+        status: isMeetingSolved ? "completed" : selectedVisit.status,
+        visitNotesTimeline: [
+          ...(selectedVisit.visitNotesTimeline || []),
+          data.data,
+        ],
+      });
+
+      setNewMeetingNote("");
+      setIsMeetingSolved(false);
+
       toast({
         title: "Berhasil",
-        description: "Catatan berhasil disimpan",
+        description: "Catatan pertemuan berhasil ditambahkan",
       });
     } catch (error: any) {
       toast({
@@ -394,6 +490,8 @@ export function VisitManagement({
         description: error.message || "Gagal menyimpan catatan",
         variant: "destructive",
       });
+    } finally {
+      setIsAddingNote(false);
     }
   };
 
@@ -440,6 +538,11 @@ export function VisitManagement({
     visit.delegatedToTeacherId === adminData?.id &&
     visit.delegationStatus === "pending";
 
+  // Helper: check if this visit is assigned TO the current admin via new delegation flow
+  const isAssignedToMe = (visit: Visit) =>
+    visit.assignedAdminId === adminData?.id &&
+    visit.status === "pending_delegation";
+
   // Render action buttons based on role and visit state
   const renderActionButtons = (visit: Visit) => {
     const buttons: JSX.Element[] = [];
@@ -457,7 +560,32 @@ export function VisitManagement({
       </Button>,
     );
 
-    // CASE 1: Visit is delegated to me and pending my acceptance
+    // CASE 0: New delegation flow — visit assigned to me, pending my response
+    if (isAssignedToMe(visit)) {
+      buttons.push(
+        <Button
+          key="accept-new"
+          size="sm"
+          onClick={() => handleTeacherApprove(visit)}
+          className="bg-green-600 hover:bg-green-700"
+          title="Terima Delegasi"
+        >
+          <UserCheck className="h-4 w-4" />
+        </Button>,
+        <Button
+          key="reject-new"
+          size="sm"
+          variant="destructive"
+          onClick={() => handleTeacherReject(visit)}
+          title="Tolak Delegasi"
+        >
+          <UserX className="h-4 w-4" />
+        </Button>,
+      );
+      return <div className="flex gap-2">{buttons}</div>;
+    }
+
+    // CASE 1: Visit is delegated to me and pending my acceptance (legacy flow)
     if (isDelegatedToMe(visit)) {
       buttons.push(
         <Button
@@ -495,14 +623,14 @@ export function VisitManagement({
           <CheckCircle className="h-4 w-4" />
         </Button>,
         <Button
-          key="forward"
+          key="unavailable"
           size="sm"
           variant="outline"
-          onClick={() => handleOpenForwardDialog(visit)}
-          className="border-blue-600 text-blue-600 hover:bg-blue-50"
-          title="Serahkan ke Koordinator"
+          onClick={() => handleMarkUnavailable(visit)}
+          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+          title="Tandai Tidak Tersedia"
         >
-          <Forward className="h-4 w-4" />
+          <Ban className="h-4 w-4" />
         </Button>,
       );
     }
@@ -564,6 +692,28 @@ export function VisitManagement({
 
   // Render delegation info badge for table
   const renderDelegationInfo = (visit: Visit) => {
+    // New delegation flow badges
+    if (visit.status === "awaiting_student") {
+      return (
+        <Badge
+          variant="outline"
+          className="text-xs bg-orange-50 text-orange-700 border-orange-200"
+        >
+          ⏳ Menunggu keputusan siswa
+        </Badge>
+      );
+    }
+    if (visit.status === "pending_delegation" && visit.assignedAdmin) {
+      return (
+        <Badge
+          variant="outline"
+          className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200"
+        >
+          🔄 Delegasi → {visit.assignedAdmin.name} (Menunggu)
+        </Badge>
+      );
+    }
+    // Legacy delegation flow badges
     if (visit.status === "forwarded") {
       if (visit.delegationStatus === "pending" && visit.delegatedToTeacher) {
         return (
@@ -624,6 +774,12 @@ export function VisitManagement({
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="awaiting_student">
+                    Menunggu Siswa
+                  </SelectItem>
+                  <SelectItem value="pending_delegation">
+                    Menunggu Guru
+                  </SelectItem>
                   <SelectItem value="approved">Disetujui</SelectItem>
                   <SelectItem value="forwarded">Diserahkan</SelectItem>
                   <SelectItem value="completed">Selesai</SelectItem>
@@ -635,7 +791,7 @@ export function VisitManagement({
         </CardHeader>
         <CardContent>
           {/* Statistics Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-6">
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-yellow-600" />
@@ -643,6 +799,24 @@ export function VisitManagement({
               </div>
               <p className="text-2xl font-bold text-yellow-600 mt-2">
                 {visits.filter((v) => v.status === "pending").length}
+              </p>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <span className="text-sm text-orange-700">Menunggu Siswa</span>
+              </div>
+              <p className="text-2xl font-bold text-orange-600 mt-2">
+                {visits.filter((v) => v.status === "awaiting_student").length}
+              </p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-4 w-4 text-purple-600" />
+                <span className="text-sm text-purple-700">Menunggu Guru</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-600 mt-2">
+                {visits.filter((v) => v.status === "pending_delegation").length}
               </p>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -682,6 +856,72 @@ export function VisitManagement({
               </p>
             </div>
           </div>
+
+          {/* NEW: Delegation Requests Panel */}
+          {(() => {
+            const delegationRequests = visits.filter(
+              (v) =>
+                v.status === "pending_delegation" &&
+                v.assignedAdminId === adminData?.id,
+            );
+            if (delegationRequests.length > 0)
+              return (
+                <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                  <h3 className="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                    <Inbox className="h-5 w-5" />
+                    Permintaan Delegasi Masuk ({delegationRequests.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {delegationRequests.map((v) => (
+                      <div
+                        key={v.id}
+                        className="flex items-center justify-between bg-white p-4 rounded-lg border"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">
+                              {v.studentName}
+                            </span>
+                            <span className="text-slate-500 text-sm">
+                              ({v.class})
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {v.reason.substring(0, 80)}
+                            {v.reason.length > 80 ? "..." : ""}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            📅 {v.visitDate} | ⏰ {v.visitTime} WIB
+                            {v.delegationStep
+                              ? ` | Delegasi ke-${v.delegationStep}`
+                              : ""}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            size="sm"
+                            onClick={() => handleTeacherApprove(v)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Terima
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleTeacherReject(v)}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Tolak
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            return null;
+          })()}
 
           {/* Coordinator: Forwarded Visits Panel */}
           {isCoordinator &&
@@ -1147,15 +1387,112 @@ export function VisitManagement({
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="notes">Catatan Guru BK</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Tambahkan catatan tentang kunjungan ini..."
-                  value={visitNotes}
-                  onChange={(e) => setVisitNotes(e.target.value)}
-                  rows={4}
-                />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-lg font-semibold text-slate-800">
+                    Timeline Catatan Pertemuan
+                  </Label>
+                  <Badge
+                    variant={
+                      selectedVisit.status === "completed"
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
+                    {selectedVisit.status === "completed"
+                      ? "Selesai"
+                      : "Sedang Berlangsung"}
+                  </Badge>
+                </div>
+
+                {/* Timeline Notes */}
+                {selectedVisit.visitNotesTimeline &&
+                selectedVisit.visitNotesTimeline.length > 0 ? (
+                  <div className="space-y-4 pl-4 border-l-2 border-slate-200">
+                    {selectedVisit.visitNotesTimeline.map((note, idx) => (
+                      <div key={note.id || idx} className="relative">
+                        <div
+                          className={`absolute -left-[25px] mt-1 h-3 w-3 rounded-full border-2 ${note.isSolved ? "bg-green-500 border-green-500" : "bg-white border-slate-400"}`}
+                        ></div>
+                        <div className="bg-slate-50 border p-3 rounded-lg mb-2">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="font-semibold text-sm">
+                              Pertemuan {idx + 1}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {new Date(note.createdAt).toLocaleString(
+                                "id-ID",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                            {note.note}
+                          </p>
+                          <div className="mt-2 text-xs font-medium">
+                            Status:{" "}
+                            <span
+                              className={
+                                note.isSolved
+                                  ? "text-green-600"
+                                  : "text-amber-600"
+                              }
+                            >
+                              {note.isSolved
+                                ? "Masalah Selesai (Solved)"
+                                : "Belum Selesai"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-4 bg-slate-50 rounded-lg text-slate-500 text-sm italic">
+                    Belum ada catatan pertemuan untuk kunjungan ini.
+                  </div>
+                )}
+
+                {/* Add new note form */}
+                {selectedVisit.status !== "completed" && (
+                  <div className="mt-6 space-y-3 bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                    <Label
+                      htmlFor="newNote"
+                      className="font-semibold text-slate-800"
+                    >
+                      Tambah Catatan Pertemuan Baru
+                    </Label>
+                    <Textarea
+                      id="newNote"
+                      placeholder="Ketik catatan pertemuan kali ini..."
+                      value={newMeetingNote}
+                      onChange={(e) => setNewMeetingNote(e.target.value)}
+                      rows={4}
+                      className="bg-slate-50"
+                    />
+                    <div className="flex items-center space-x-2 mt-2">
+                      <input
+                        type="checkbox"
+                        id="isSolved"
+                        checked={isMeetingSolved}
+                        onChange={(e) => setIsMeetingSolved(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                      />
+                      <Label
+                        htmlFor="isSolved"
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        Tandai masalah telah selesai (Solved)
+                      </Label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -1178,7 +1515,14 @@ export function VisitManagement({
             <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
               Tutup
             </Button>
-            <Button onClick={handleSaveNotes}>Simpan Catatan</Button>
+            {selectedVisit?.status !== "completed" && (
+              <Button
+                onClick={handleAddMeetingNote}
+                disabled={isAddingNote || !newMeetingNote.trim()}
+              >
+                {isAddingNote ? "Menyimpan..." : "Simpan Catatan Baru"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1374,120 +1718,6 @@ export function VisitManagement({
                 <>
                   <ArrowRightLeft className="h-4 w-4" />
                   Delegasikan
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog Serahkan ke Koordinator */}
-      <Dialog open={isForwardDialogOpen} onOpenChange={setIsForwardDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-600">
-              <Forward className="h-5 w-5" />
-              Serahkan ke Koordinator
-            </DialogTitle>
-            <DialogDescription>
-              Kunjungan ini akan diserahkan ke koordinator untuk didelegasikan
-              ke guru BK lain. Koordinator akan memilih guru pengganti yang
-              sesuai.
-            </DialogDescription>
-          </DialogHeader>
-          {visitToForward && (
-            <div className="space-y-4 py-4">
-              {/* Visit summary */}
-              <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-600">Murid:</span>
-                  <span className="font-medium">
-                    {visitToForward.studentName}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-600">Kelas:</span>
-                  <span className="font-medium">{visitToForward.class}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-600">Tanggal:</span>
-                  <span className="font-medium">
-                    {new Date(visitToForward.visitDate).toLocaleDateString(
-                      "id-ID",
-                      {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      },
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-600">Keperluan:</span>
-                  <span className="font-medium text-right max-w-[200px] truncate">
-                    {visitToForward.reason}
-                  </span>
-                </div>
-              </div>
-
-              {/* Forward reason */}
-              <div className="space-y-2">
-                <Label htmlFor="forwardReason">
-                  Alasan Penyerahan (opsional)
-                </Label>
-                <Textarea
-                  id="forwardReason"
-                  placeholder="Jelaskan alasan mengapa kunjungan ini perlu diserahkan ke koordinator, misalnya: tidak sesuai bidang keahlian, jadwal bentrok, dll."
-                  value={forwardReason}
-                  onChange={(e) => setForwardReason(e.target.value)}
-                  rows={3}
-                />
-              </div>
-
-              {/* Info box */}
-              <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <AlertTriangle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-800">
-                  <p className="font-medium mb-1">
-                    Apa yang terjadi selanjutnya?
-                  </p>
-                  <ul className="list-disc list-inside space-y-0.5">
-                    <li>Koordinator akan menerima laporan ini</li>
-                    <li>Koordinator akan mendelegasikan ke guru BK lain</li>
-                    <li>
-                      Guru yang ditunjuk harus menyetujui sebelum kunjungan
-                      dilanjutkan
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsForwardDialogOpen(false);
-                setVisitToForward(null);
-              }}
-              disabled={isForwarding}
-            >
-              Batal
-            </Button>
-            <Button
-              onClick={handleForwardToCoordinator}
-              disabled={isForwarding}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              {isForwarding ? (
-                <>
-                  <span className="animate-spin">⏳</span>
-                  Menyerahkan...
-                </>
-              ) : (
-                <>
-                  <Forward className="h-4 w-4" />
-                  Serahkan ke Koordinator
                 </>
               )}
             </Button>

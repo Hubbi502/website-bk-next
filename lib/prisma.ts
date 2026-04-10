@@ -15,7 +15,9 @@ if (process.env.NODE_ENV === "production") {
   // Production: Use connection pooling with pg adapter
   const pool = new Pool({ 
     connectionString: process.env.DATABASE_URL,
-    max: 1, // Limit connections for serverless
+    max: 10, // Allow more connections for serverless
+    idleTimeoutMillis: 30000, // Close idle connections after 30s
+    connectionTimeoutMillis: 10000, // Timeout if can't get connection in 10s
   });
   const adapter = new PrismaPg(pool);
   
@@ -28,12 +30,15 @@ if (process.env.NODE_ENV === "production") {
   if (!globalForPrisma.prisma) {
     globalForPrisma.pool = new Pool({
       connectionString: process.env.DATABASE_URL || process.env.DIRECT_URL,
+      max: 20, // Development can handle more connections
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
     });
     const adapter = new PrismaPg(globalForPrisma.pool);
     
     globalForPrisma.prisma = new PrismaClient({
       adapter,
-      log: ["query", "error", "warn"],
+      log: ["error", "warn"],
     });
   }
   prisma = globalForPrisma.prisma;

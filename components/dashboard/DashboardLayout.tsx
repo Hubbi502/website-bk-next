@@ -17,14 +17,15 @@ import {
   X,
   Home,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  GraduationCap
 } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
   adminData: any;
-  activeTab: "overview" | "articles" | "visits" | "admins";
-  setActiveTab: (tab: "overview" | "articles" | "visits" | "admins") => void;
+  activeTab: "overview" | "articles" | "visits" | "admins" | "students";
+  setActiveTab: (tab: "overview" | "articles" | "visits" | "admins" | "students") => void;
   articlesCount: number;
   pendingVisitsCount: number;
   currentPageTitle: string;
@@ -43,8 +44,15 @@ export function DashboardLayout({
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Hapus cookie JWT di server
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      // abaikan error jaringan
+    }
     localStorage.removeItem("adminData");
+    localStorage.removeItem("adminToken");
     toast({
       title: "Logout Berhasil",
       description: "Anda telah keluar dari sistem",
@@ -56,23 +64,23 @@ export function DashboardLayout({
     { id: "overview", icon: LayoutDashboard, label: "Overview", badge: null },
     { id: "articles", icon: FileText, label: "Kelola Artikel", badge: articlesCount },
     { id: "visits", icon: Users, label: "Kunjungan Murid", badge: pendingVisitsCount },
+    { id: "students", icon: GraduationCap, label: "Kelola Siswa", badge: null },
   ];
 
   // Add admin management menu only for super admin
   const menuItems = isSuperAdmin(adminData)
     ? [
-        ...baseMenuItems,
-        { id: "admins", icon: ShieldCheck, label: "Kelola Admin", badge: null },
-      ]
+      ...baseMenuItems,
+      { id: "admins", icon: ShieldCheck, label: "Kelola Admin", badge: null },
+    ]
     : baseMenuItems;
 
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
       <aside
-        className={`${
-          sidebarOpen ? 'w-64' : 'w-0'
-        } bg-slate-900 text-white transition-all duration-300 overflow-hidden flex flex-col`}
+        className={`${sidebarOpen ? 'w-64' : 'w-0'
+          } bg-slate-900 text-white transition-all duration-300 overflow-hidden flex flex-col`}
       >
         {/* Logo & Brand */}
         <div className="p-6 flex items-center justify-between border-b border-slate-800">
@@ -113,11 +121,10 @@ export function DashboardLayout({
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
                     ? 'bg-blue-600 text-white shadow-lg'
                     : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon className="h-5 w-5" />
                 <span className="flex-1 text-left font-medium">{item.label}</span>
