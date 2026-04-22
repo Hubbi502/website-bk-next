@@ -48,6 +48,8 @@ export async function POST(request: Request) {
       class: student.class,
     });
 
+    const { password: _password, ...studentData } = student;
+
     const res = NextResponse.json({
       success: true,
       message: "Login berhasil",
