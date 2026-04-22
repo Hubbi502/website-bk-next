@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   RefreshCw,
   UserCheck,
+  Timer,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -39,13 +40,21 @@ interface Visit {
   visitTime: string;
   reason: string;
   status:
-    | "pending"
-    | "approved"
-    | "forwarded"
-    | "completed"
-    | "cancelled"
-    | "awaiting_student"
-    | "pending_delegation";
+  | "pending"
+  | "approved"
+  | "forwarded"
+  | "completed"
+  | "cancelled"
+  | "awaiting_student"
+  | "pending_delegation"
+  | "pending_time_negotiation"
+  | "waiting";
+  proposedVisitDate?: string;
+  proposedVisitTime?: string;
+  timeNegotiationStep?: number;
+  timeNegotiationNotes?: string;
+  waitDurationMinutes?: number;
+  waitExpiredAt?: string;
   notes?: string;
   approvedBy?: string;
   targetTeacherId?: string;
@@ -83,6 +92,59 @@ interface Teacher {
 
 const Schedule = () => {
   const [myVisits, setMyVisits] = useState<Visit[]>([]);
+
+  // WaitCountdownBar component
+  const WaitCountdownBar = ({ waitDurationMinutes, waitExpiredAt, onExpired }: {
+    waitDurationMinutes: number;
+    waitExpiredAt: string;
+    onExpired: () => void;
+  }) => {
+    const [timeLeft, setTimeLeft] = useState(
+      new Date(waitExpiredAt).getTime() - Date.now()
+    );
+
+    useEffect(() => {
+      if (timeLeft <= 0) {
+        onExpired();
+        return;
+      }
+
+      const interval = setInterval(() => {
+        const newTimeLeft = new Date(waitExpiredAt).getTime() - Date.now();
+        setTimeLeft(newTimeLeft);
+
+        if (newTimeLeft <= 0) {
+          clearInterval(interval);
+          onExpired();
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }, [waitExpiredAt, onExpired]);
+
+    const totalWaitMs = waitDurationMinutes * 60 * 1000;
+    const percentage = Math.max(0, Math.min(100, (timeLeft / totalWaitMs) * 100));
+    const minutes = Math.max(0, Math.floor(timeLeft / 60000));
+    const seconds = Math.max(0, Math.floor((timeLeft % 60000) / 1000));
+
+    return (
+      <div className="w-full mt-4">
+        <div className="flex justify-between items-center mb-1 text-sm font-medium text-amber-600">
+          <span className="flex items-center gap-1">
+            <Timer className="h-3.5 w-3.5" />
+            Mohon tunggu konfirmasi guru...
+          </span>
+          <span>{minutes}:{seconds.toString().padStart(2, '0')}</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+          <div
+            className="bg-amber-500 h-2.5 rounded-full transition-all duration-1000 ease-linear"
+            style={{ width: `${percentage}%` }}
+          ></div>
+        </div>
+      </div>
+    );
+  };
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [studentData, setStudentData] = useState<any>(null);
   const [availableTeachers, setAvailableTeachers] = useState<Teacher[]>([]);
@@ -100,6 +162,13 @@ const Schedule = () => {
     useState<string>("");
   const [isDelegating, setIsDelegating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Time negotiation state
+  const [isTimeNegotiationOpen, setIsTimeNegotiationOpen] = useState(false);
+  const [negotiationDate, setNegotiationDate] = useState("");
+  const [negotiationTime, setNegotiationTime] = useState("");
+  const [negotiationBookedSlots, setNegotiationBookedSlots] = useState<string[]>([]);
+  const [isProposingTime, setIsProposingTime] = useState(false);
 
   // Form state untuk kunjungan baru
   const [visitForm, setVisitForm] = useState({
@@ -330,12 +399,12 @@ const Schedule = () => {
     try {
       const payload = studentData
         ? {
-            visitDate: visitForm.visitDate,
-            visitTime: visitForm.visitTime,
-            reason: visitForm.reason,
-            studentId: studentData.id,
-            targetTeacherId: selectedTeacherId,
-          }
+          visitDate: visitForm.visitDate,
+          visitTime: visitForm.visitTime,
+          reason: visitForm.reason,
+          studentId: studentData.id,
+          targetTeacherId: selectedTeacherId,
+        }
         : { ...visitForm, targetTeacherId: selectedTeacherId };
 
       const response = await fetch("/api/visits", {
@@ -402,7 +471,9 @@ const Schedule = () => {
         v.status === "pending" ||
         v.status === "forwarded" ||
         v.status === "awaiting_student" ||
-        v.status === "pending_delegation",
+        v.status === "pending_delegation" ||
+        v.status === "pending_time_negotiation" ||
+        v.status === "waiting",
     )
     .slice(0, 5);
 
@@ -413,12 +484,16 @@ const Schedule = () => {
         return <CheckCircle2 className="h-5 w-5 text-green-600" />;
       case "pending":
         return <AlertCircle className="h-5 w-5 text-yellow-600" />;
+      case "waiting":
+        return <Timer className="h-5 w-5 text-amber-600" />;
       case "forwarded":
         return <Send className="h-5 w-5 text-blue-600" />;
       case "awaiting_student":
         return <AlertTriangle className="h-5 w-5 text-orange-600" />;
       case "pending_delegation":
         return <RefreshCw className="h-5 w-5 text-indigo-600" />;
+      case "pending_time_negotiation":
+        return <Clock className="h-5 w-5 text-purple-600" />;
       case "completed":
         return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
       case "cancelled":
@@ -433,9 +508,11 @@ const Schedule = () => {
       confirmed: "bg-green-100 text-green-800 hover:bg-green-100",
       approved: "bg-green-100 text-green-800 hover:bg-green-100",
       pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
+      waiting: "bg-amber-100 text-amber-800 hover:bg-amber-100",
       forwarded: "bg-blue-100 text-blue-800 hover:bg-blue-100",
       awaiting_student: "bg-orange-100 text-orange-800 hover:bg-orange-100",
       pending_delegation: "bg-indigo-100 text-indigo-800 hover:bg-indigo-100",
+      pending_time_negotiation: "bg-purple-100 text-purple-800 hover:bg-purple-100",
       completed: "bg-emerald-100 text-emerald-800 hover:bg-emerald-100",
       cancelled: "bg-red-100 text-red-800 hover:bg-red-100",
     };
@@ -445,10 +522,12 @@ const Schedule = () => {
   const getStatusText = (status: string) => {
     const labels: Record<string, string> = {
       pending: "Menunggu Persetujuan",
+      waiting: "⏳ Menunggu (Hold)",
       approved: "Disetujui",
       forwarded: "Sedang Diproses",
       awaiting_student: "⏳ Menunggu Keputusanmu",
       pending_delegation: "🔄 Menunggu Konfirmasi Guru",
+      pending_time_negotiation: "🕐 Menunggu Konfirmasi Waktu Guru",
       completed: "Selesai",
       cancelled: "Dibatalkan",
     };
@@ -526,6 +605,64 @@ const Schedule = () => {
     }
   };
 
+  // --- Time Negotiation Handlers ---
+  const fetchNegotiationBookedSlots = async (teacherId: string, date: string, visitId: string) => {
+    if (!teacherId || !date) {
+      setNegotiationBookedSlots([]);
+      return;
+    }
+    try {
+      const response = await fetch(
+        `/api/visits/booked-slots?teacherId=${encodeURIComponent(teacherId)}&date=${encodeURIComponent(date)}&excludeVisitId=${encodeURIComponent(visitId)}`
+      );
+      const data = await response.json();
+      if (data.success) {
+        setNegotiationBookedSlots(data.data);
+        if (data.data.includes(negotiationTime)) {
+          setNegotiationTime("");
+          toast.warning("Waktu yang Anda pilih sudah tidak tersedia", {
+            description: "Silakan pilih waktu lain.",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching negotiation booked slots:", error);
+    }
+  };
+
+  const handleProposeTime = async () => {
+    if (!awaitingVisit || !negotiationDate || !negotiationTime || !studentData) return;
+    setIsProposingTime(true);
+    try {
+      const response = await fetch(`/api/visits/${awaitingVisit.id}/propose-time`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: studentData.id,
+          proposedVisitDate: negotiationDate,
+          proposedVisitTime: negotiationTime,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal mengirim usulan waktu");
+      }
+
+      setIsTimeNegotiationOpen(false);
+      setAwaitingVisit(null);
+      setNegotiationDate("");
+      setNegotiationTime("");
+      toast.success("Usulan waktu berhasil dikirim", {
+        description: "Menunggu konfirmasi dari Guru BK.",
+      });
+      await loadVisits();
+    } catch (error: any) {
+      toast.error(error.message || "Gagal mengirim usulan waktu");
+    } finally {
+      setIsProposingTime(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("studentData");
     setStudentData(null);
@@ -545,22 +682,22 @@ const Schedule = () => {
     <div className="min-h-screen">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+      <div className="container mx-auto px-4 py-6 md:py-12">
+        <div className="text-center mb-6 md:mb-8 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-3 md:mb-4">
             Jadwal Kunjungan BK
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
             Ajukan jadwal kunjungan ke Guru BK untuk konsultasi akademik, karir,
             atau pribadi
           </p>
         </div>
 
         {/* Student Auth Section */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6 md:mb-8">
           {studentData ? (
-            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 px-6 py-3 rounded-lg border text-white">
-              <User className="h-5 w-5 text-white" />
+            <div className="flex flex-wrap items-center gap-3 bg-slate-50 dark:bg-slate-900 px-4 sm:px-6 py-3 rounded-lg border text-white">
+              <User className="h-5 w-5 text-white shrink-0" />
               <div className="text-sm">
                 <p className="font-semibold text-white">{studentData.name}</p>
                 <p className="text-white dark:text-slate-400">
@@ -571,7 +708,7 @@ const Schedule = () => {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="ml-4 gap-2"
+                className="ml-2 gap-2"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
@@ -588,9 +725,9 @@ const Schedule = () => {
         </div>
 
         {/* Form Kunjungan Baru & Kunjungan Aktif */}
-        <section className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">
+        <section className="mb-10 md:mb-12">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+            <h2 className="text-xl sm:text-2xl font-semibold">
               {studentData
                 ? "Jadwal & Kunjungan Saya"
                 : "Buat Jadwal Kunjungan"}
@@ -601,13 +738,14 @@ const Schedule = () => {
                   <Button
                     size="lg"
                     className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-transform duration-300 ease-out
-                    transform hover:scale-105 px-6 py-3 focus-visible:ring-2 focus-visible:ring-blue-400"
+                    transform hover:scale-105 px-4 sm:px-6 py-3 focus-visible:ring-2 focus-visible:ring-blue-400 text-sm sm:text-base"
                   >
-                    <Send className="h-5 w-5" />
-                    Ajukan Kunjungan Baru
+                    <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="hidden sm:inline">Ajukan Kunjungan Baru</span>
+                    <span className="sm:hidden">Ajukan</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
                       Form Pengajuan Kunjungan ke Guru BK
@@ -955,25 +1093,36 @@ const Schedule = () => {
           {studentData && (
             <div className="mb-8">
               {upcomingAppointments.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {upcomingAppointments.map((visit) => (
                     <Card
                       key={visit.id}
-                      className="relative overflow-hidden group hover:shadow-md transition-all"
+                      className={`relative overflow-hidden group hover:shadow-md transition-all ${visit.status === "awaiting_student"
+                        ? "cursor-pointer ring-1 ring-orange-200 hover:ring-orange-400"
+                        : ""
+                        }`}
+                      onClick={() => {
+                        if (visit.status === "awaiting_student") {
+                          setAwaitingVisit(visit);
+                          setIsUnavailableAlertOpen(true);
+                        }
+                      }}
                     >
                       <div
-                        className={`absolute top-0 left-0 w-1 h-full ${
-                          visit.status === "approved" ||
+                        className={`absolute top-0 left-0 w-1 h-full ${visit.status === "approved" ||
                           visit.status === "completed"
-                            ? "bg-green-500"
-                            : visit.status === "pending" ||
-                                visit.status === "awaiting_student" ||
-                                visit.status === "pending_delegation"
-                              ? "bg-amber-500"
+                          ? "bg-green-500"
+                          : visit.status === "pending" ||
+                            visit.status === "awaiting_student" ||
+                            visit.status === "pending_delegation" ||
+                            visit.status === "pending_time_negotiation"
+                            ? "bg-amber-500"
+                            : visit.status === "waiting"
+                              ? "bg-amber-400"
                               : visit.status === "cancelled"
                                 ? "bg-red-500"
                                 : "bg-blue-500"
-                        }`}
+                          }`}
                       />
                       <CardContent className="p-5">
                         <div className="flex justify-between items-start mb-3">
@@ -987,17 +1136,9 @@ const Schedule = () => {
                             </span>
                           </Badge>
                           {visit.status === "awaiting_student" && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="h-7 text-xs"
-                              onClick={() => {
-                                setAwaitingVisit(visit);
-                                setIsUnavailableAlertOpen(true);
-                              }}
-                            >
-                              Tindak Lanjut
-                            </Button>
+                            <span className="text-xs text-orange-600 font-medium animate-pulse">
+                              Klik untuk tindak lanjut
+                            </span>
                           )}
                         </div>
 
@@ -1032,6 +1173,15 @@ const Schedule = () => {
                             </span>
                           </div>
                         </div>
+
+                        {/* Countdown Bar for WAITING status */}
+                        {visit.status === "waiting" && visit.waitDurationMinutes && visit.waitExpiredAt && (
+                          <WaitCountdownBar
+                            waitDurationMinutes={visit.waitDurationMinutes}
+                            waitExpiredAt={visit.waitExpiredAt}
+                            onExpired={() => loadVisits()}
+                          />
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -1051,7 +1201,7 @@ const Schedule = () => {
           )}
 
           {/* Info Cards */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <Card className="shadow-card hover:shadow-elevated transition-all">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
@@ -1150,71 +1300,76 @@ const Schedule = () => {
           open={isUnavailableAlertOpen}
           onOpenChange={setIsUnavailableAlertOpen}
         >
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-orange-700">
-                <AlertTriangle className="h-5 w-5" />
+                <AlertTriangle className="h-5 w-5 shrink-0" />
                 Guru BK Tidak Tersedia
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-sm leading-relaxed">
                 {awaitingVisit?.targetTeacher
                   ? `Guru BK ${awaitingVisit.targetTeacher.name} sedang tidak tersedia untuk jadwal yang Anda ajukan.`
                   : "Guru BK yang Anda pilih sedang tidak tersedia."}
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm text-orange-800">
-                  Apakah Anda ingin melanjutkan pengajuan kunjungan dengan
-                  memilih guru BK lain?
-                </p>
-              </div>
+
+            <div className="space-y-3">
+              {/* Visit info */}
               {awaitingVisit && (
-                <div className="mt-3 text-sm text-slate-600 space-y-1">
-                  <p>
-                    <strong>Tanggal:</strong>{" "}
-                    {new Date(awaitingVisit.visitDate).toLocaleDateString(
-                      "id-ID",
-                      {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      },
-                    )}
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-700 space-y-1">
+                  <p><strong>Tanggal:</strong>{" "}
+                    {new Date(awaitingVisit.visitDate).toLocaleDateString("id-ID", {
+                      weekday: "long", year: "numeric", month: "long", day: "numeric",
+                    })}
                   </p>
-                  <p>
-                    <strong>Waktu:</strong> {awaitingVisit.visitTime} WIB
-                  </p>
-                  <p>
-                    <strong>Alasan:</strong> {awaitingVisit.reason}
-                  </p>
+                  <p><strong>Waktu:</strong> {awaitingVisit.visitTime} WIB</p>
+                  <p className="line-clamp-2"><strong>Alasan:</strong> {awaitingVisit.reason}</p>
                 </div>
               )}
+
+              {/* Options hint */}
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-sm text-orange-800 font-medium">Pilih tindakan:</p>
+              </div>
+
+              {/* Action buttons — stacked vertically, full width */}
+              <div className="flex flex-col gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    awaitingVisit &&
+                    handleStudentDecision(awaitingVisit.id, "cancel")
+                  }
+                  className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
+                >
+                  <XCircle className="h-4 w-4 mr-2 shrink-0" />
+                  Batalkan Kunjungan
+                </Button>
+                <Button
+                  onClick={() =>
+                    awaitingVisit &&
+                    handleStudentDecision(awaitingVisit.id, "continue")
+                  }
+                  className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                >
+                  <UserCheck className="h-4 w-4 mr-2 shrink-0" />
+                  Pilih Guru BK Lain
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsUnavailableAlertOpen(false);
+                    setNegotiationDate("");
+                    setNegotiationTime("");
+                    setNegotiationBookedSlots([]);
+                    setIsTimeNegotiationOpen(true);
+                  }}
+                  className="w-full justify-start bg-purple-600 hover:bg-purple-700"
+                >
+                  <Clock className="h-4 w-4 mr-2 shrink-0" />
+                  Usulkan Waktu Lain (Guru Sama)
+                </Button>
+              </div>
             </div>
-            <DialogFooter className="flex gap-2 sm:gap-0">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  awaitingVisit &&
-                  handleStudentDecision(awaitingVisit.id, "cancel")
-                }
-                className="border-red-300 text-red-700 hover:bg-red-50"
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Batalkan Kunjungan
-              </Button>
-              <Button
-                onClick={() =>
-                  awaitingVisit &&
-                  handleStudentDecision(awaitingVisit.id, "continue")
-                }
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <UserCheck className="h-4 w-4 mr-2" />
-                Ya, Lanjutkan
-              </Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 
@@ -1253,18 +1408,16 @@ const Schedule = () => {
                     <div
                       key={teacher.id}
                       onClick={() => setSelectedDelegateTeacherId(teacher.id)}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        selectedDelegateTeacherId === teacher.id
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
-                      }`}
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${selectedDelegateTeacherId === teacher.id
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                        }`}
                     >
                       <div
-                        className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                          selectedDelegateTeacherId === teacher.id
-                            ? "border-blue-500"
-                            : "border-slate-300"
-                        }`}
+                        className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${selectedDelegateTeacherId === teacher.id
+                          ? "border-blue-500"
+                          : "border-slate-300"
+                          }`}
                       >
                         {selectedDelegateTeacherId === teacher.id && (
                           <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
@@ -1309,6 +1462,132 @@ const Schedule = () => {
                 ) : (
                   <>
                     <Send className="h-4 w-4 mr-2" /> Pilih Guru
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* TimeNegotiationModal */}
+        <Dialog
+          open={isTimeNegotiationOpen}
+          onOpenChange={(open) => {
+            setIsTimeNegotiationOpen(open);
+            if (!open) {
+              setNegotiationDate("");
+              setNegotiationTime("");
+              setNegotiationBookedSlots([]);
+            }
+          }}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-purple-700">
+                <Clock className="h-5 w-5" />
+                Usulkan Waktu Baru
+              </DialogTitle>
+              <DialogDescription>
+                Pilih tanggal dan waktu yang Anda inginkan untuk kunjungan dengan{" "}
+                <strong>{awaitingVisit?.targetTeacher?.name || "Guru BK"}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              {awaitingVisit && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
+                  <p><strong>Guru BK:</strong> {awaitingVisit.targetTeacher?.name}</p>
+                  <p><strong>Jadwal awal:</strong>{" "}
+                    {new Date(awaitingVisit.visitDate).toLocaleDateString("id-ID", {
+                      weekday: "long", year: "numeric", month: "long", day: "numeric",
+                    })}{" "}
+                    {awaitingVisit.visitTime} WIB
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="negDate" className="!text-gray-900">
+                  Tanggal Baru
+                </Label>
+                <Input
+                  id="negDate"
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={negotiationDate}
+                  onChange={(e) => {
+                    setNegotiationDate(e.target.value);
+                    setNegotiationTime("");
+                    if (awaitingVisit?.targetTeacherId) {
+                      fetchNegotiationBookedSlots(
+                        awaitingVisit.targetTeacherId,
+                        e.target.value,
+                        awaitingVisit.id
+                      );
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="negTime" className="!text-gray-900">
+                  Waktu Baru
+                </Label>
+                <Select
+                  value={negotiationTime}
+                  onValueChange={(value) => setNegotiationTime(value)}
+                  disabled={!negotiationDate}
+                >
+                  <SelectTrigger id="negTime">
+                    <SelectValue placeholder={negotiationDate ? "Pilih waktu" : "Pilih tanggal dahulu"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map((time) => {
+                      const isBooked = negotiationBookedSlots.includes(time);
+                      return (
+                        <SelectItem
+                          key={time}
+                          value={time}
+                          disabled={isBooked}
+                          className={isBooked ? "opacity-50 line-through" : ""}
+                        >
+                          {time} WIB{isBooked ? " (Tidak Tersedia)" : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                {negotiationBookedSlots.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Waktu yang dicoret sudah terisi oleh siswa lain
+                  </p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsTimeNegotiationOpen(false);
+                  setNegotiationDate("");
+                  setNegotiationTime("");
+                }}
+              >
+                Batal
+              </Button>
+              <Button
+                onClick={handleProposeTime}
+                disabled={!negotiationDate || !negotiationTime || isProposingTime}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {isProposingTime ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Mengirim...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Kirim Usulan
                   </>
                 )}
               </Button>

@@ -78,6 +78,22 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Auto-cancel expired WAITING visits
+    const now = new Date();
+    for (const visit of visits) {
+      if (visit.status === "WAITING" && visit.waitExpiredAt && now > visit.waitExpiredAt) {
+        await prisma.visit.update({
+          where: { id: visit.id },
+          data: {
+            status: "CANCELLED",
+            notes: "Dibatalkan otomatis: waktu tunggu habis.",
+          },
+        });
+        visit.status = "CANCELLED";
+        visit.notes = "Dibatalkan otomatis: waktu tunggu habis.";
+      }
+    }
+
     const formattedVisits = visits.map((visit) => ({
       id: visit.id,
       studentName: visit.studentName,
@@ -114,6 +130,12 @@ export async function GET(request: NextRequest) {
       } : null,
       rejectedAdminIds: visit.rejectedAdminIds || [],
       delegationStep: visit.delegationStep || 0,
+      proposedVisitDate: visit.proposedVisitDate ? visit.proposedVisitDate.toISOString().split("T")[0] : null,
+      proposedVisitTime: visit.proposedVisitTime || null,
+      timeNegotiationStep: visit.timeNegotiationStep || 0,
+      timeNegotiationNotes: visit.timeNegotiationNotes || null,
+      waitDurationMinutes: visit.waitDurationMinutes || null,
+      waitExpiredAt: visit.waitExpiredAt ? visit.waitExpiredAt.toISOString() : null,
       visitNotesTimeline: visit.visitNotesTimeline || [],
       createdAt: visit.createdAt.toISOString(),
       updatedAt: visit.updatedAt.toISOString(),

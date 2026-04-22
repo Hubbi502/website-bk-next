@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Clock, CheckCircle, XCircle, AlertTriangle, RefreshCw } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertTriangle, RefreshCw, Timer } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
@@ -17,7 +17,7 @@ interface Visit {
   visitDate: string;
   visitTime: string;
   reason: string;
-  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled" | "awaiting_student" | "pending_delegation";
+  status: "pending" | "approved" | "forwarded" | "completed" | "cancelled" | "awaiting_student" | "pending_delegation" | "pending_time_negotiation" | "waiting";
   notes?: string;
   approvedBy?: string;
   createdAt: string;
@@ -158,8 +158,10 @@ const Dashboard = () => {
   const getStatusBadge = (status: Visit["status"]) => {
     const variants: Record<string, any> = {
       pending: { variant: "secondary", icon: Clock, text: "Pending" },
+      waiting: { variant: "secondary", icon: Timer, text: "Menunggu (Hold)" },
       awaiting_student: { variant: "secondary", icon: AlertTriangle, text: "Menunggu Siswa" },
       pending_delegation: { variant: "secondary", icon: RefreshCw, text: "Menunggu Guru" },
+      pending_time_negotiation: { variant: "secondary", icon: Clock, text: "Negosiasi Waktu" },
       approved: { variant: "default", icon: CheckCircle, text: "Disetujui" },
       forwarded: { variant: "default", icon: Clock, text: "Diserahkan" },
       completed: { variant: "default", icon: CheckCircle, text: "Selesai" },
@@ -416,7 +418,7 @@ const Dashboard = () => {
       setActiveTab={setActiveTab}
       articlesCount={articles.length}
       pendingVisitsCount={
-        visits.filter((v) => v.status === "pending" || v.status === "forwarded" || v.status === "awaiting_student" || v.status === "pending_delegation")
+        visits.filter((v) => v.status === "pending" || v.status === "forwarded" || v.status === "awaiting_student" || v.status === "pending_delegation" || v.status === "pending_time_negotiation" || v.status === "waiting")
           .length
       }
       currentPageTitle={currentPageTitle}

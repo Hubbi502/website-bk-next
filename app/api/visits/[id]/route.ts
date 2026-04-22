@@ -95,6 +95,12 @@ export async function GET(
       } : null,
       rejectedAdminIds: visit.rejectedAdminIds || [],
       delegationStep: visit.delegationStep || 0,
+      proposedVisitDate: visit.proposedVisitDate ? visit.proposedVisitDate.toISOString().split("T")[0] : null,
+      proposedVisitTime: visit.proposedVisitTime || null,
+      timeNegotiationStep: visit.timeNegotiationStep || 0,
+      timeNegotiationNotes: visit.timeNegotiationNotes || null,
+      waitDurationMinutes: visit.waitDurationMinutes || null,
+      waitExpiredAt: visit.waitExpiredAt ? visit.waitExpiredAt.toISOString() : null,
       visitNotesTimeline: visit.visitNotesTimeline || [],
       createdAt: visit.createdAt.toISOString(),
       updatedAt: visit.updatedAt.toISOString(),
@@ -126,7 +132,7 @@ export async function PUT(
     const visitId = id;
 
     const body = await request.json();
-    const { action, status, notes, approvedBy, delegatedToTeacherId, delegationNotes, forwardReason } = body;
+    const { action, status, notes, approvedBy, delegatedToTeacherId, delegationNotes, forwardReason, waitDurationMinutes } = body;
 
     // Check if visit exists
     const existingVisit = await prisma.visit.findUnique({
@@ -192,6 +198,18 @@ export async function PUT(
         };
         break;
 
+      case "wait":
+        // Guru meminta siswa menunggu dengan durasi tertentu
+        const duration = parseInt(waitDurationMinutes) || 15;
+        const waitExpiredAt = new Date(Date.now() + duration * 60000);
+        updateData = {
+          status: "WAITING",
+          waitDurationMinutes: duration,
+          waitExpiredAt: waitExpiredAt,
+          approvedBy: approvedBy || null,
+        };
+        break;
+
       default:
         // Legacy behavior: update status/notes/approvedBy langsung
         updateData = {
@@ -243,6 +261,7 @@ export async function PUT(
       delegate: "Kunjungan berhasil didelegasikan ke guru lain",
       accept_delegation: "Delegasi berhasil diterima",
       reject_delegation: "Delegasi berhasil ditolak",
+      wait: "Siswa diminta menunggu",
     };
 
     const formattedVisit = {
@@ -281,6 +300,12 @@ export async function PUT(
       } : null,
       rejectedAdminIds: updatedVisit.rejectedAdminIds || [],
       delegationStep: updatedVisit.delegationStep || 0,
+      proposedVisitDate: updatedVisit.proposedVisitDate ? updatedVisit.proposedVisitDate.toISOString().split("T")[0] : null,
+      proposedVisitTime: updatedVisit.proposedVisitTime || null,
+      timeNegotiationStep: updatedVisit.timeNegotiationStep || 0,
+      timeNegotiationNotes: updatedVisit.timeNegotiationNotes || null,
+      waitDurationMinutes: updatedVisit.waitDurationMinutes || null,
+      waitExpiredAt: updatedVisit.waitExpiredAt ? updatedVisit.waitExpiredAt.toISOString() : null,
       createdAt: updatedVisit.createdAt.toISOString(),
       updatedAt: updatedVisit.updatedAt.toISOString(),
     };

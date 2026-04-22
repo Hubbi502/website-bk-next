@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const teacherId = searchParams.get("teacherId");
     const date = searchParams.get("date");
+    const excludeVisitId = searchParams.get("excludeVisitId");
 
     if (!teacherId || !date) {
       return NextResponse.json(
@@ -18,15 +19,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Cari semua kunjungan yang aktif (pending/approved/forwarded) pada guru & tanggal tersebut
-    const bookedVisits = await prisma.visit.findMany({
-      where: {
-        targetTeacherId: teacherId,
-        visitDate: new Date(date),
-        status: {
-          in: ["PENDING", "APPROVED", "FORWARDED"],
-        },
+    // Cari semua kunjungan yang aktif pada guru & tanggal tersebut
+    const whereClause: Record<string, unknown> = {
+      targetTeacherId: teacherId,
+      visitDate: new Date(date),
+      status: {
+        in: [
+          "PENDING",
+          "AWAITING_STUDENT",
+          "PENDING_DELEGATION",
+          "PENDING_TIME_NEGOTIATION",
+          "APPROVED",
+          "FORWARDED",
+        ],
       },
+    };
+
+    // Exclude visit ID jika diberikan (untuk negosiasi waktu agar tidak bentrok dengan diri sendiri)
+    if (excludeVisitId) {
+      whereClause.id = { not: excludeVisitId };
+    }
+
+    const bookedVisits = await prisma.visit.findMany({
+      where: whereClause,
       select: {
         visitTime: true,
       },
@@ -49,3 +64,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

@@ -1,0 +1,48 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+  <diagram name="Page-1" id="Kz5bgCS2tOC2RJBEp5A0">
+    <mxGraphModel dx="1426" dy="1009" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-5" edge="1" parent="1" source="xg2ldKwVx6-iYoRIaSg1-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="xg2ldKwVx6-iYoRIaSg1-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;start&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="365" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;" value="&lt;span style=&quot;font-size: 16px;&quot;&gt;finish&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="365" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-11" edge="1" parent="1" source="xg2ldKwVx6-iYoRIaSg1-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="xg2ldKwVx6-iYoRIaSg1-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-4" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Input username&lt;div&gt;dan password&lt;/div&gt;" vertex="1">
+          <mxGeometry height="40" width="185" x="333" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-7" edge="1" parent="1" source="xg2ldKwVx6-iYoRIaSg1-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="xg2ldKwVx6-iYoRIaSg1-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="330" />
+              <mxPoint x="280" y="230" />
+            </Array>
+            <mxPoint x="330" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-8" connectable="0" parent="xg2ldKwVx6-iYoRIaSg1-7" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Gagal" vertex="1">
+          <mxGeometry relative="1" x="0.2639" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-10" edge="1" parent="1" source="xg2ldKwVx6-iYoRIaSg1-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="xg2ldKwVx6-iYoRIaSg1-9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Login" vertex="1">
+          <mxGeometry height="80" width="80" x="386" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="xg2ldKwVx6-iYoRIaSg1-9" parent="1" style="whiteSpace=wrap;html=1;" value="Lanjut...." vertex="1">
+          <mxGeometry height="60" width="120" x="366" y="460" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

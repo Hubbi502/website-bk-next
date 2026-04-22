@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
+    "prisma:generate:clean": "node -e \"require('fs').rmSync('lib/generated/prisma', { recursive: true, force: true })\" && prisma generate",
+    "dev": "npm run prisma:generate:clean && next dev",
+    "build": "npm run prisma:generate:clean && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "npm run prisma:generate:clean"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

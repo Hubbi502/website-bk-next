@@ -1,0 +1,431 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+  <diagram name="Page-1" id="Kz5bgCS2tOC2RJBEp5A0">
+    <mxGraphModel dx="1426" dy="1009" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="vStart" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;" value="Start" vertex="1">
+          <mxGeometry height="60" width="120" x="1040" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="vLoginPage" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Halaman Login Guru" vertex="1">
+          <mxGeometry height="60" width="210" x="995" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="vInputCred" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Input Username &amp; Password" vertex="1">
+          <mxGeometry height="60" width="280" x="960" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="dValidate" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Login berhasil?" vertex="1">
+          <mxGeometry height="90" width="90" x="1060" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="vDashboard" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Dashboard Guru BK" vertex="1">
+          <mxGeometry height="60" width="190" x="1005" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="dMenu" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Pilih Menu" vertex="1">
+          <mxGeometry height="80" width="80" x="1060" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="vOverview" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Overview" vertex="1">
+          <mxGeometry height="60" width="190" x="1005" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="vOverviewStats" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Statistik &amp; Ringkasan" vertex="1">
+          <mxGeometry height="60" width="230" x="985" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="vArticleMenu" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Manajemen Artikel" vertex="1">
+          <mxGeometry height="60" width="210" x="640" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="dArticleAction" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Aksi Artikel" vertex="1">
+          <mxGeometry height="90" width="90" x="710" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="vCreateArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Buat Artikel Baru" vertex="1">
+          <mxGeometry height="60" width="170" x="420" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="vFormArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Isi Form (judul, konten, gambar, kategori)" vertex="1">
+          <mxGeometry height="60" width="290" x="360" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="vSaveArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Simpan Artikel" vertex="1">
+          <mxGeometry height="60" width="130" x="440" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="vPublished" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Artikel Dipublikasi" vertex="1">
+          <mxGeometry height="60" width="170" x="420" y="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="vEditArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Edit Artikel" vertex="1">
+          <mxGeometry height="60" width="150" x="680" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="vFormEdit" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Ubah Konten Artikel" vertex="1">
+          <mxGeometry height="60" width="190" x="660" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="vSaveEdit" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Simpan Perubahan" vertex="1">
+          <mxGeometry height="60" width="130" x="690" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="vArticleUpdated" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Artikel Berhasil Diupdate" vertex="1">
+          <mxGeometry height="60" width="210" x="650" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="vDeleteArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Hapus Artikel" vertex="1">
+          <mxGeometry height="60" width="150" x="870" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="vDeleteConfirm" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Konfirmasi Hapus" vertex="1">
+          <mxGeometry height="60" width="170" x="860" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="vArticleDeleted" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Artikel Dihapus" vertex="1">
+          <mxGeometry height="60" width="150" x="870" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="vVisitMenu" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Manajemen Kunjungan" vertex="1">
+          <mxGeometry height="60" width="220" x="1360" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="vVisitList" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Daftar Semua Kunjungan" vertex="1">
+          <mxGeometry height="60" width="240" x="1350" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-9" edge="1" parent="1" source="dFilterVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.411;entryY=-0.012;entryDx=0;entryDy=0;entryPerimeter=0;" target="FeojPG6XbOuJzoA1MT3A-10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1890" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-11" connectable="0" parent="FeojPG6XbOuJzoA1MT3A-9" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="WAIT" vertex="1">
+          <mxGeometry relative="1" x="0.8061" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dFilterVisit" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Filter Status" vertex="1">
+          <mxGeometry height="90" width="90" x="1425" y="910" as="geometry" />
+        </mxCell>
+        <mxCell id="vPendingList" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Kunjungan Pending" vertex="1">
+          <mxGeometry height="60" width="170" x="1660" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="vApprovedList" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Kunjungan Approved" vertex="1">
+          <mxGeometry height="60" width="170" x="1300" y="1050" as="geometry" />
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-3" edge="1" parent="1" source="vCompletedList" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1130" y="1410" />
+              <mxPoint x="260" y="1410" />
+              <mxPoint x="260" y="500" />
+            </Array>
+            <mxPoint x="1005" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="vCompletedList" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Kunjungan Completed" vertex="1">
+          <mxGeometry height="60" width="180" x="1080" y="1050" as="geometry" />
+        </mxCell>
+        <mxCell id="vCancelledList" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Kunjungan Cancelled" vertex="1">
+          <mxGeometry height="60" width="170" x="1920" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="vReviewVisit" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Review Pengajuan" vertex="1">
+          <mxGeometry height="60" width="160" x="1665" y="1140" as="geometry" />
+        </mxCell>
+        <mxCell id="dDecision" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Keputusan" vertex="1">
+          <mxGeometry height="90" width="90" x="1700" y="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="vApproveVisit" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Setujui Kunjungan" vertex="1">
+          <mxGeometry height="60" width="170" x="1530" y="1360" as="geometry" />
+        </mxCell>
+        <mxCell id="vRejectVisit" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Tolak Kunjungan" vertex="1">
+          <mxGeometry height="60" width="150" x="1720" y="1360" as="geometry" />
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-5" edge="1" parent="1" source="vNotifyStudent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="vApprovedList">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vNotifyStudent" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Notifikasi ke Siswa" vertex="1">
+          <mxGeometry height="60" width="170" x="1530" y="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-7" edge="1" parent="1" source="vNotifyReject" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="FeojPG6XbOuJzoA1MT3A-6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vNotifyReject" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Beri alasan" vertex="1">
+          <mxGeometry height="60" width="170" x="1710" y="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="vCounseling" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Lakukan Konseling" vertex="1">
+          <mxGeometry height="60" width="160" x="1305" y="1150" as="geometry" />
+        </mxCell>
+        <mxCell id="vMarkComplete" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Tandai Selesai" vertex="1">
+          <mxGeometry height="60" width="130" x="1320" y="1240" as="geometry" />
+        </mxCell>
+        <mxCell id="vAddResult" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Tambah Catatan Hasil" vertex="1">
+          <mxGeometry height="60" width="190" x="1290" y="1340" as="geometry" />
+        </mxCell>
+        <mxCell id="vLogout" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Logout" vertex="1">
+          <mxGeometry height="60" width="130" x="970" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="vFinish" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;" value="Finish" vertex="1">
+          <mxGeometry height="60" width="120" x="975" y="1670" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="vStart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vLoginPage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="vLoginPage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vInputCred">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="vInputCred" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="dValidate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="dValidate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="vLoginPage">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="385" />
+              <mxPoint x="850" y="170" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l4" connectable="0" parent="e4" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Tidak" vertex="1">
+          <mxGeometry relative="1" x="0.1" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="dValidate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l5" connectable="0" parent="e5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Ya" vertex="1">
+          <mxGeometry relative="1" x="0.3" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="vDashboard" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="dMenu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="dMenu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vOverview">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l7" connectable="0" parent="e7" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Overview" vertex="1">
+          <mxGeometry relative="1" x="0.2" y="-1" as="geometry">
+            <mxPoint x="1" y="-11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="vOverview" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vOverviewStats">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="vOverviewStats" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1070" y="1390" />
+              <mxPoint x="260" y="1390" />
+              <mxPoint x="260" y="510" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="dMenu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vArticleMenu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l10" connectable="0" parent="e10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Artikel" vertex="1">
+          <mxGeometry relative="1" x="0.2" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="vArticleMenu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="dArticleAction">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="dArticleAction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vCreateArticle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l12" connectable="0" parent="e12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Create" vertex="1">
+          <mxGeometry relative="1" x="0.2" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="dArticleAction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vEditArticle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l13" connectable="0" parent="e13" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Edit" vertex="1">
+          <mxGeometry relative="1" x="0.3" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="dArticleAction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDeleteArticle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l14" connectable="0" parent="e14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Delete" vertex="1">
+          <mxGeometry relative="1" x="0.4" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="vCreateArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vFormArticle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="vFormArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vSaveArticle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="vSaveArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vPublished">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="vPublished" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="300" y="1290" />
+              <mxPoint x="300" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="vEditArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vFormEdit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="vFormEdit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vSaveEdit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="vSaveEdit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vArticleUpdated">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="vArticleUpdated" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="755" y="1360" />
+              <mxPoint x="280" y="1360" />
+              <mxPoint x="280" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="vDeleteArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDeleteConfirm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="vDeleteConfirm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vArticleDeleted">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="vArticleDeleted" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="945" y="1390" />
+              <mxPoint x="260" y="1390" />
+              <mxPoint x="260" y="510" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="dMenu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vVisitMenu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l26" connectable="0" parent="e26" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Kunjungan" vertex="1">
+          <mxGeometry relative="1" x="0.3" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="vVisitMenu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vVisitList">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" edge="1" parent="1" source="vVisitList" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="dFilterVisit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" edge="1" parent="1" source="dFilterVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vPendingList">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l29" connectable="0" parent="e29" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="PENDING" vertex="1">
+          <mxGeometry relative="1" x="0.2" y="-1" as="geometry">
+            <mxPoint x="41" y="34" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e30" edge="1" parent="1" source="dFilterVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vApprovedList">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l30" connectable="0" parent="e30" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="APPROVED" vertex="1">
+          <mxGeometry relative="1" x="0.5" y="-1" as="geometry">
+            <mxPoint x="36" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e31" edge="1" parent="1" source="dFilterVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vCompletedList">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l31" connectable="0" parent="e31" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="COMPLETED" vertex="1">
+          <mxGeometry relative="1" x="0.65" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e32" edge="1" parent="1" source="dFilterVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vCancelledList">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l32" connectable="0" parent="e32" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="CANCELLED" vertex="1">
+          <mxGeometry relative="1" x="0.7" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e33" edge="1" parent="1" source="vPendingList" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vReviewVisit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" edge="1" parent="1" source="vReviewVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="dDecision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e35" edge="1" parent="1" source="dDecision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vApproveVisit">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1615" y="1275" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l35" connectable="0" parent="e35" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Approve" vertex="1">
+          <mxGeometry relative="1" x="0.2" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e36" edge="1" parent="1" source="dDecision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vRejectVisit">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1810" y="1275" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l36" connectable="0" parent="e36" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Reject" vertex="1">
+          <mxGeometry relative="1" x="0.35" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e38" edge="1" parent="1" source="vApproveVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vNotifyStudent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e40" edge="1" parent="1" source="vRejectVisit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vNotifyReject">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e44" edge="1" parent="1" source="vApprovedList" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vCounseling">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e45" edge="1" parent="1" source="vCounseling" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vMarkComplete">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e46" edge="1" parent="1" source="vMarkComplete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vAddResult">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e47" edge="1" parent="1" source="vAddResult" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" target="vCompletedList">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1170" y="1345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e49" edge="1" parent="1" source="vCancelledList" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2030" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e50" edge="1" parent="1" source="vDashboard" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vLogout">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2150" y="500" />
+              <mxPoint x="2150" y="1600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e51" edge="1" parent="1" source="vLogout" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vFinish">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-8" edge="1" parent="1" source="FeojPG6XbOuJzoA1MT3A-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2120" y="1490" />
+              <mxPoint x="2120" y="505" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-6" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Tunggu siswa konfirmasi" vertex="1">
+          <mxGeometry height="60" width="120" x="1930" y="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-13" edge="1" parent="1" source="FeojPG6XbOuJzoA1MT3A-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.001;entryY=0.417;entryDx=0;entryDy=0;entryPerimeter=0;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1900" y="1280" />
+              <mxPoint x="2110" y="1280" />
+              <mxPoint x="2110" y="515" />
+            </Array>
+            <mxPoint x="1220" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FeojPG6XbOuJzoA1MT3A-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Memberikan jangka waktu tunggu" vertex="1">
+          <mxGeometry height="60" width="120" x="1840" y="1040" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

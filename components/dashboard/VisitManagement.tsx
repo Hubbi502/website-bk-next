@@ -28,6 +28,7 @@ import {
   Ban,
   RefreshCw,
   Inbox,
+  Timer,
 } from "lucide-react";
 
 export interface VisitNote {
@@ -49,13 +50,15 @@ interface Visit {
   visitTime: string;
   reason: string;
   status:
-    | "pending"
-    | "approved"
-    | "forwarded"
-    | "completed"
-    | "cancelled"
-    | "awaiting_student"
-    | "pending_delegation";
+  | "pending"
+  | "approved"
+  | "forwarded"
+  | "completed"
+  | "cancelled"
+  | "awaiting_student"
+  | "pending_delegation"
+  | "pending_time_negotiation"
+  | "waiting";
   notes?: string;
   visitNotesTimeline?: VisitNote[];
   approvedBy?: string;
@@ -83,6 +86,12 @@ interface Visit {
   };
   rejectedAdminIds?: string[];
   delegationStep?: number;
+  proposedVisitDate?: string;
+  proposedVisitTime?: string;
+  timeNegotiationStep?: number;
+  timeNegotiationNotes?: string;
+  waitDurationMinutes?: number;
+  waitExpiredAt?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -130,6 +139,11 @@ export function VisitManagement({
     useState("");
   const [delegationNotes, setDelegationNotes] = useState("");
   const [isDelegating, setIsDelegating] = useState(false);
+
+  // Wait dialog state
+  const [isWaitDialogOpen, setIsWaitDialogOpen] = useState(false);
+  const [visitToWait, setVisitToWait] = useState<Visit | null>(null);
+  const [waitDuration, setWaitDuration] = useState("15");
 
   const isCoordinator = adminData?.role === "SUPER_ADMIN";
 
@@ -209,6 +223,7 @@ export function VisitManagement({
         forwarded: "Diserahkan",
         awaiting_student: "Menunggu Keputusan Siswa",
         pending_delegation: "Menunggu Konfirmasi Guru",
+        pending_time_negotiation: "Menunggu Konfirmasi Waktu",
         completed: "Selesai",
         cancelled: "Dibatalkan",
       };
@@ -221,6 +236,40 @@ export function VisitManagement({
       toast({
         title: "Error",
         description: error.message || "Gagal memperbarui status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // --- Handle "Tunggu" (Wait) ---
+  const handleWaitVisit = async () => {
+    if (!visitToWait || !adminData?.id) return;
+    try {
+      const response = await fetch(`/api/visits/${visitToWait.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "wait",
+          waitDurationMinutes: parseInt(waitDuration) || 15,
+          approvedBy: adminData.id,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal mengubah status");
+      }
+      await loadVisits();
+      setIsWaitDialogOpen(false);
+      setVisitToWait(null);
+      setWaitDuration("15");
+      toast({
+        title: "Siswa Diminta Menunggu",
+        description: `Kunjungan akan otomatis dibatalkan dalam ${waitDuration} menit jika tidak diproses.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengubah status",
         variant: "destructive",
       });
     }
@@ -303,6 +352,59 @@ export function VisitManagement({
       toast({
         title: "Error",
         description: error.message || "Gagal menolak delegasi",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // --- Handle time negotiation approve/reject ---
+  const handleApproveTimeNegotiation = async (visit: Visit) => {
+    if (!adminData?.id) return;
+    try {
+      const response = await fetch(`/api/visits/${visit.id}/time-negotiation-response`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId: adminData.id, response: "approve" }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal menyetujui waktu");
+      }
+      await loadVisits();
+      toast({
+        title: "Waktu Disetujui",
+        description: "Usulan waktu baru berhasil disetujui. Kunjungan terjadwal.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menyetujui waktu",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectTimeNegotiation = async (visit: Visit) => {
+    if (!adminData?.id) return;
+    try {
+      const response = await fetch(`/api/visits/${visit.id}/time-negotiation-response`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId: adminData.id, response: "reject" }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Gagal menolak waktu");
+      }
+      await loadVisits();
+      toast({
+        title: "Waktu Ditolak",
+        description: "Siswa akan diminta memilih opsi lain.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menolak waktu",
         variant: "destructive",
       });
     }
@@ -585,6 +687,36 @@ export function VisitManagement({
       return <div className="flex gap-2">{buttons}</div>;
     }
 
+    // CASE 0.5: Time negotiation — visit waiting for my time response
+    if (
+      visit.status === "pending_time_negotiation" &&
+      visit.targetTeacherId === adminData?.id
+    ) {
+      buttons.push(
+        <Button
+          key="approve-time"
+          size="sm"
+          onClick={() => handleApproveTimeNegotiation(visit)}
+          className="bg-green-600 hover:bg-green-700"
+          title="Setujui Waktu Baru"
+        >
+          <CheckCircle className="h-4 w-4 mr-1" />
+          <span className="hidden sm:inline">Setujui</span>
+        </Button>,
+        <Button
+          key="reject-time"
+          size="sm"
+          variant="destructive"
+          onClick={() => handleRejectTimeNegotiation(visit)}
+          title="Tolak Waktu Baru"
+        >
+          <XCircle className="h-4 w-4 mr-1" />
+          <span className="hidden sm:inline">Tolak</span>
+        </Button>,
+      );
+      return <div className="flex gap-2">{buttons}</div>;
+    }
+
     // CASE 1: Visit is delegated to me and pending my acceptance (legacy flow)
     if (isDelegatedToMe(visit)) {
       buttons.push(
@@ -621,6 +753,20 @@ export function VisitManagement({
           title="Setujui Pertemuan"
         >
           <CheckCircle className="h-4 w-4" />
+        </Button>,
+        <Button
+          key="wait"
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setVisitToWait(visit);
+            setWaitDuration("15");
+            setIsWaitDialogOpen(true);
+          }}
+          className="border-amber-500 text-amber-600 hover:bg-amber-50"
+          title="Minta Siswa Menunggu"
+        >
+          <Timer className="h-4 w-4" />
         </Button>,
         <Button
           key="unavailable"
@@ -713,6 +859,16 @@ export function VisitManagement({
         </Badge>
       );
     }
+    if (visit.status === "pending_time_negotiation") {
+      return (
+        <Badge
+          variant="outline"
+          className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+        >
+          🕐 Negosiasi Waktu{visit.proposedVisitDate ? ` → ${visit.proposedVisitDate} ${visit.proposedVisitTime}` : ""}
+        </Badge>
+      );
+    }
     // Legacy delegation flow badges
     if (visit.status === "forwarded") {
       if (visit.delegationStatus === "pending" && visit.delegatedToTeacher) {
@@ -741,6 +897,16 @@ export function VisitManagement({
           className="text-xs bg-blue-50 text-blue-700 border-blue-200"
         >
           Menunggu delegasi koordinator
+        </Badge>
+      );
+    }
+    if (visit.status === "waiting") {
+      return (
+        <Badge
+          variant="outline"
+          className="text-xs bg-amber-50 text-amber-700 border-amber-200"
+        >
+          ⏳ Menunggu (Hold){visit.waitExpiredAt ? ` — habis ${new Date(visit.waitExpiredAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}` : ""}
         </Badge>
       );
     }
@@ -774,11 +940,15 @@ export function VisitManagement({
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="waiting">Menunggu (Tunggu)</SelectItem>
                   <SelectItem value="awaiting_student">
                     Menunggu Siswa
                   </SelectItem>
                   <SelectItem value="pending_delegation">
                     Menunggu Guru
+                  </SelectItem>
+                  <SelectItem value="pending_time_negotiation">
+                    Negosiasi Waktu
                   </SelectItem>
                   <SelectItem value="approved">Disetujui</SelectItem>
                   <SelectItem value="forwarded">Diserahkan</SelectItem>
@@ -791,7 +961,7 @@ export function VisitManagement({
         </CardHeader>
         <CardContent>
           {/* Statistics Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-yellow-600" />
@@ -799,6 +969,15 @@ export function VisitManagement({
               </div>
               <p className="text-2xl font-bold text-yellow-600 mt-2">
                 {visits.filter((v) => v.status === "pending").length}
+              </p>
+            </div>
+            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+              <div className="flex items-center gap-2">
+                <Timer className="h-4 w-4 text-amber-600" />
+                <span className="text-sm text-amber-700">Menunggu</span>
+              </div>
+              <p className="text-2xl font-bold text-amber-600 mt-2">
+                {visits.filter((v) => v.status === "waiting").length}
               </p>
             </div>
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
@@ -817,6 +996,15 @@ export function VisitManagement({
               </div>
               <p className="text-2xl font-bold text-purple-600 mt-2">
                 {visits.filter((v) => v.status === "pending_delegation").length}
+              </p>
+            </div>
+            <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-cyan-600" />
+                <span className="text-sm text-cyan-700">Negosiasi Waktu</span>
+              </div>
+              <p className="text-2xl font-bold text-cyan-600 mt-2">
+                {visits.filter((v) => v.status === "pending_time_negotiation").length}
               </p>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -910,6 +1098,73 @@ export function VisitManagement({
                             size="sm"
                             variant="destructive"
                             onClick={() => handleTeacherReject(v)}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Tolak
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            return null;
+          })()}
+
+          {/* Time Negotiation Requests Panel */}
+          {(() => {
+            const timeNegRequests = visits.filter(
+              (v) =>
+                v.status === "pending_time_negotiation" &&
+                v.targetTeacherId === adminData?.id,
+            );
+            if (timeNegRequests.length > 0)
+              return (
+                <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Permintaan Negosiasi Waktu ({timeNegRequests.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {timeNegRequests.map((v) => (
+                      <div
+                        key={v.id}
+                        className="flex items-center justify-between bg-white p-4 rounded-lg border"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">
+                              {v.studentName}
+                            </span>
+                            <span className="text-slate-500 text-sm">
+                              ({v.class})
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {v.reason.substring(0, 80)}
+                            {v.reason.length > 80 ? "..." : ""}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            📅 Jadwal awal: {v.visitDate} | ⏰ {v.visitTime} WIB
+                          </p>
+                          <p className="text-xs text-purple-600 mt-1 font-medium">
+                            🕐 Usulan baru: {v.proposedVisitDate} | ⏰ {v.proposedVisitTime} WIB
+                            {v.timeNegotiationStep ? ` (Negosiasi ke-${v.timeNegotiationStep})` : ""}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApproveTimeNegotiation(v)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Setujui Waktu
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleRejectTimeNegotiation(v)}
                           >
                             <XCircle className="h-4 w-4 mr-1" />
                             Tolak
@@ -1407,7 +1662,7 @@ export function VisitManagement({
 
                 {/* Timeline Notes */}
                 {selectedVisit.visitNotesTimeline &&
-                selectedVisit.visitNotesTimeline.length > 0 ? (
+                  selectedVisit.visitNotesTimeline.length > 0 ? (
                   <div className="space-y-4 pl-4 border-l-2 border-slate-200">
                     {selectedVisit.visitNotesTimeline.map((note, idx) => (
                       <div key={note.id || idx} className="relative">
@@ -1720,6 +1975,70 @@ export function VisitManagement({
                   Delegasikan
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Wait Duration Dialog */}
+      <Dialog open={isWaitDialogOpen} onOpenChange={(open) => {
+        setIsWaitDialogOpen(open);
+        if (!open) {
+          setVisitToWait(null);
+          setWaitDuration("15");
+        }
+      }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-700">
+              <Timer className="h-5 w-5" />
+              Minta Siswa Menunggu
+            </DialogTitle>
+            <DialogDescription>
+              Tentukan berapa lama siswa harus menunggu. Jika waktu habis, kunjungan akan otomatis dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          {visitToWait && (
+            <div className="py-4 space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+                <p><strong>Siswa:</strong> {visitToWait.studentName} ({visitToWait.class})</p>
+                <p><strong>Jadwal:</strong> {visitToWait.visitDate} | {visitToWait.visitTime} WIB</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="waitDuration">Durasi Tunggu (menit)</Label>
+                <Input
+                  id="waitDuration"
+                  type="number"
+                  min="1"
+                  max="120"
+                  value={waitDuration}
+                  onChange={(e) => setWaitDuration(e.target.value)}
+                  placeholder="15"
+                />
+                <p className="text-xs text-slate-500">
+                  Contoh: 15 menit, 30 menit, dst.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsWaitDialogOpen(false);
+                setVisitToWait(null);
+                setWaitDuration("15");
+              }}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleWaitVisit}
+              disabled={!waitDuration || parseInt(waitDuration) < 1}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              <Timer className="h-4 w-4 mr-2" />
+              Kirim
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -129,6 +129,14 @@ model Visit {
   assignedAdmin          Admin?            @relation("AssignedVisits", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   rejectedAdminIds       String[]          @default([]) // Daftar ID guru yang sudah menolak
   delegationStep         Int               @default(0) // Langkah delegasi ke-berapa
+  // Fields untuk negosiasi waktu (siswa mengusulkan waktu baru ke guru asal)
+  proposedVisitDate      DateTime?
+  proposedVisitTime      String?
+  timeNegotiationStep    Int               @default(0)
+  timeNegotiationNotes   String?           @db.Text
+  // Fields untuk fitur tunggu (waiting/hold)
+  waitDurationMinutes    Int? // Durasi awal menunggu (menit)
+  waitExpiredAt          DateTime? // Waktu kadaluwarsa tunggu
   visitNotesTimeline     VisitNote[]
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
@@ -160,7 +168,9 @@ model VisitNote {
 // Enum untuk status kunjungan
 enum VisitStatus {
   PENDING
+  WAITING // Guru meminta siswa menunggu (hold sementara)
   AWAITING_STUDENT // Menunggu keputusan siswa (guru tidak tersedia)
+  PENDING_TIME_NEGOTIATION // Siswa mengajukan jadwal baru, menunggu konfirmasi guru asal
   PENDING_DELEGATION // Siswa memilih lanjut, menunggu konfirmasi guru baru
   APPROVED
   FORWARDED
