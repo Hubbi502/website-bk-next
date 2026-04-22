@@ -97,7 +97,7 @@ const ArticleDetailContent = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      
+
       <article className="container mx-auto px-4 py-12 max-w-4xl">
         <Link href="/articles">
           <Button variant="ghost" className="mb-6 gap-2">
@@ -108,9 +108,11 @@ const ArticleDetailContent = () => {
 
         <div className="animate-fade-in">
           <Badge className="mb-4">{article.category || "General"}</Badge>
-          
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">{article.title}</h1>
-          
+
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            {article.title}
+          </h1>
+
           <div className="flex items-center gap-6 text-muted-foreground mb-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -122,12 +124,14 @@ const ArticleDetailContent = () => {
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground mb-8">Oleh {article.author}</p>
+          <p className="text-sm text-muted-foreground mb-8">
+            Oleh {article.author}
+          </p>
 
-          <img 
-            src={article.image} 
+          <img
+            src={article.image}
             alt={article.title}
-            className="w-full h-[400px] object-cover rounded-xl shadow-elevated mb-8"
+            className="w-full h-auto max-h-[70vh] object-contain rounded-xl shadow-elevated mb-8"
           />
 
           {article.pdfUrl && (
@@ -135,24 +139,42 @@ const ArticleDetailContent = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-white rounded-lg shadow-sm">
-                    <svg className="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg
+                      className="h-8 w-8 text-red-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
                       <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">File PDF Tersedia</h3>
-                    <p className="text-sm text-gray-600">{article.pdfFileName || "Dokumen terlampir"}</p>
+                    <h3 className="font-semibold text-gray-900">
+                      File PDF Tersedia
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {article.pdfFileName || "Dokumen terlampir"}
+                    </p>
                   </div>
                 </div>
-                <a 
-                  href={article.pdfUrl} 
-                  target="_blank" 
+                <a
+                  href={article.pdfUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   download
                 >
                   <Button className="gap-2">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
                     </svg>
                     Download PDF
                   </Button>
@@ -162,11 +184,15 @@ const ArticleDetailContent = () => {
           )}
 
           <div className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground">
-            <p className="text-lg leading-relaxed whitespace-pre-line">{article.content}</p>
+            <p className="text-lg leading-relaxed whitespace-pre-line">
+              {article.content}
+            </p>
           </div>
 
           <div className="mt-12 pt-8 border-t">
-            <p className="text-muted-foreground mb-4">Butuh bimbingan personal?</p>
+            <p className="text-muted-foreground mb-4">
+              Butuh bimbingan personal?
+            </p>
             <Link href="/schedule">
               <Button size="lg">Jadwalkan Sesi Konseling</Button>
             </Link>

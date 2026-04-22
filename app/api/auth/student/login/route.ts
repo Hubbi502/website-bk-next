@@ -40,7 +40,6 @@ export async function POST(request: Request) {
     }
 
     // Return student data (exclude password) + JWT token
-    const { password: _, ...studentData } = student;
 
     const token = signStudentToken({
       id: student.id,
