@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
   <diagram name="Page-1" id="Kz5bgCS2tOC2RJBEp5A0">
-    <mxGraphModel dx="1426" dy="1009" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1800" math="0" shadow="0">
+    <mxGraphModel dx="3565" dy="2523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1800" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -37,9 +37,6 @@
         <mxCell id="vCreateArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Buat Artikel Baru" vertex="1">
           <mxGeometry height="60" width="170" x="420" y="960" as="geometry" />
         </mxCell>
-        <mxCell id="vFormArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Isi Form (judul, konten, gambar, kategori)" vertex="1">
-          <mxGeometry height="60" width="290" x="360" y="1060" as="geometry" />
-        </mxCell>
         <mxCell id="vSaveArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Simpan Artikel" vertex="1">
           <mxGeometry height="60" width="130" x="440" y="1160" as="geometry" />
         </mxCell>
@@ -49,9 +46,6 @@
         <mxCell id="vEditArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Edit Artikel" vertex="1">
           <mxGeometry height="60" width="150" x="680" y="960" as="geometry" />
         </mxCell>
-        <mxCell id="vFormEdit" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Ubah Konten Artikel" vertex="1">
-          <mxGeometry height="60" width="190" x="660" y="1060" as="geometry" />
-        </mxCell>
         <mxCell id="vSaveEdit" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Simpan Perubahan" vertex="1">
           <mxGeometry height="60" width="130" x="690" y="1160" as="geometry" />
         </mxCell>
@@ -60,9 +54,6 @@
         </mxCell>
         <mxCell id="vDeleteArticle" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Hapus Artikel" vertex="1">
           <mxGeometry height="60" width="150" x="870" y="960" as="geometry" />
-        </mxCell>
-        <mxCell id="vDeleteConfirm" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Konfirmasi Hapus" vertex="1">
-          <mxGeometry height="60" width="170" x="860" y="1060" as="geometry" />
         </mxCell>
         <mxCell id="vArticleDeleted" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Artikel Dihapus" vertex="1">
           <mxGeometry height="60" width="150" x="870" y="1160" as="geometry" />
@@ -235,11 +226,15 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e15" edge="1" parent="1" source="vCreateArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vFormArticle">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e15" edge="1" parent="1" source="vCreateArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="505" y="1060" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e16" edge="1" parent="1" source="vFormArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vSaveArticle">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e16" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vSaveArticle">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="505" y="1120" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="e17" edge="1" parent="1" source="vSaveArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vPublished">
           <mxGeometry relative="1" as="geometry" />
@@ -252,11 +247,15 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e19" edge="1" parent="1" source="vEditArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vFormEdit">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e19" edge="1" parent="1" source="vEditArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="755" y="1060" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e20" edge="1" parent="1" source="vFormEdit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vSaveEdit">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e20" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vSaveEdit">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="755" y="1120" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="e21" edge="1" parent="1" source="vSaveEdit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vArticleUpdated">
           <mxGeometry relative="1" as="geometry" />
@@ -270,11 +269,15 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e23" edge="1" parent="1" source="vDeleteArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDeleteConfirm">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e23" edge="1" parent="1" source="vDeleteArticle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="945" y="1060" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e24" edge="1" parent="1" source="vDeleteConfirm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vArticleDeleted">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e24" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vArticleDeleted">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="945" y="1120" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="e25" edge="1" parent="1" source="vArticleDeleted" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="vDashboard">
           <mxGeometry relative="1" as="geometry">
@@ -424,6 +427,15 @@
         </mxCell>
         <mxCell id="FeojPG6XbOuJzoA1MT3A-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Memberikan jangka waktu tunggu" vertex="1">
           <mxGeometry height="60" width="120" x="1840" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="pzD6KnSi9PJ_pAj0lnYn-1" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Isi Form (judul, konten, gambar, kategori)" vertex="1">
+          <mxGeometry height="60" width="290" x="340" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="pzD6KnSi9PJ_pAj0lnYn-2" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Ubah Konten Artikel" vertex="1">
+          <mxGeometry height="60" width="160" x="675" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="pzD6KnSi9PJ_pAj0lnYn-3" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="konfirmasi hapus" vertex="1">
+          <mxGeometry height="60" width="145" x="875" y="1060" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
