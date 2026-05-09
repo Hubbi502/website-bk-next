@@ -151,8 +151,17 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create admin error:", error);
+    
+    // Handle Prisma unique constraint violation (e.g., username already exists)
+    if (error?.code === 'P2002') {
+      return NextResponse.json(
+        { error: "Username already exists or fails unique constraint" },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
