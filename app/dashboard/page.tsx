@@ -452,7 +452,10 @@ const Dashboard = () => {
       )}
 
       {activeTab === "admins" && isSuperAdmin(adminData) && (
-        <AdminManagement currentAdminId={adminData.id} />
+        <AdminManagement 
+          currentAdminId={adminData.id} 
+          visits={visits}
+        />
       )}
 
       {activeTab === "students" && (

@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
   <diagram name="Page-1" id="Kz5bgCS2tOC2RJBEp5A0">
-    <mxGraphModel dx="5052" dy="2018" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1800" math="0" shadow="0">
+    <mxGraphModel dx="5765" dy="2523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1800" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -18,6 +18,16 @@
         </mxCell>
         <mxCell id="vDashboard" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Dashboard Guru BK" vertex="1">
           <mxGeometry height="60" width="190" x="1005" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-1" edge="1" parent="1" source="dMenu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="fzlhbSuckpR0I27HWtVS-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2461.904761904762" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-29" connectable="0" parent="fzlhbSuckpR0I27HWtVS-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Guru" vertex="1">
+          <mxGeometry relative="1" x="-0.0857" y="6" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="dMenu" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Pilih Menu" vertex="1">
           <mxGeometry height="80" width="80" x="1060" y="600" as="geometry" />
@@ -575,6 +585,117 @@
         </mxCell>
         <mxCell id="pzD6KnSi9PJ_pAj0lnYn-41" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Artikel Berhasil DiHapus" vertex="1">
           <mxGeometry height="60" width="150" x="870" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-2" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Aksi Guru" vertex="1">
+          <mxGeometry height="90" width="90" x="2560" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-3" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Buat Guru Baru" vertex="1">
+          <mxGeometry height="60" width="170" x="2270" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-24" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2355" y="1260" />
+              <mxPoint x="3010" y="1260" />
+              <mxPoint x="3010" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-4" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Simpan guru" vertex="1">
+          <mxGeometry height="60" width="130" x="2290" y="1120" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-5" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Edit Guru" vertex="1">
+          <mxGeometry height="60" width="150" x="2530" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-25" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2605" y="1260" />
+              <mxPoint x="3010" y="1260" />
+              <mxPoint x="3010" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-6" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Simpan Perubahan guru" vertex="1">
+          <mxGeometry height="60" width="130" x="2540" y="1120" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-7" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Guru Siswa" vertex="1">
+          <mxGeometry height="60" width="150" x="2720" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-28" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="vDashboard">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2795" y="1260" />
+              <mxPoint x="3010" y="1260" />
+              <mxPoint x="3010" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-8" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Guru Dihapus" vertex="1">
+          <mxGeometry height="60" width="150" x="2720" y="1120" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-9" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fzlhbSuckpR0I27HWtVS-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-10" connectable="0" parent="fzlhbSuckpR0I27HWtVS-9" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Create" vertex="1">
+          <mxGeometry relative="1" x="0.2" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-11" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fzlhbSuckpR0I27HWtVS-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-12" connectable="0" parent="fzlhbSuckpR0I27HWtVS-11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Edit" vertex="1">
+          <mxGeometry relative="1" x="0.3" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-13" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fzlhbSuckpR0I27HWtVS-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-14" connectable="0" parent="fzlhbSuckpR0I27HWtVS-13" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Delete" vertex="1">
+          <mxGeometry relative="1" x="0.4" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-15" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2355" y="1020" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-16" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fzlhbSuckpR0I27HWtVS-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2355" y="1080" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-17" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2605" y="1020" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-18" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fzlhbSuckpR0I27HWtVS-6">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2605" y="1080" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-19" edge="1" parent="1" source="fzlhbSuckpR0I27HWtVS-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2795" y="1020" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-20" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="fzlhbSuckpR0I27HWtVS-8">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2795" y="1080" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-21" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Isi Form (Nama Lengkap, Username, Password)" vertex="1">
+          <mxGeometry height="60" width="290" x="2190" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-22" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Ubah Data siswa" vertex="1">
+          <mxGeometry height="60" width="160" x="2525" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="fzlhbSuckpR0I27HWtVS-23" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="konfirmasi hapus" vertex="1">
+          <mxGeometry height="60" width="145" x="2725" y="1020" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

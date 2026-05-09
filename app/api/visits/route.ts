@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { pusherServer, VISIT_CHANNEL, VISIT_BOOKED_EVENT } from "@/lib/pusher";
+import { verifyToken } from "@/lib/jwt";
 
 // GET - Mengambil kunjungan (filter berdasarkan studentId atau teacherId)
 export async function GET(request: NextRequest) {
@@ -8,7 +9,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
     const teacherId = searchParams.get("teacherId");
-    const role = searchParams.get("role");
+
+    // Ambil token dari header Authorization
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
+    const user = token ? verifyToken(token) : null;
+    const userRole = user && "role" in user ? user.role : null;
+    const userId = user && "id" in user ? user.id : null;
 
     // Build where clause berdasarkan role dan parameter
     let whereClause: Record<string, unknown> = {};
@@ -16,15 +23,10 @@ export async function GET(request: NextRequest) {
     if (studentId) {
       // Filter untuk student melihat kunjungan mereka sendiri
       whereClause.studentId = studentId;
-    } else if (teacherId && role === "SUPER_ADMIN") {
-      // Koordinator bisa melihat:
-      // 1. Visits yang ditujukan ke mereka sendiri
-      // 2. Visits yang di-forward ke koordinator (forwardedToCoordinator = true)
-      whereClause.OR = [
-        { targetTeacherId: teacherId },
-        { forwardedToCoordinator: true },
-      ];
-    } else if (teacherId) {
+    } else if (userRole === "SUPER_ADMIN") {
+      // Super Admin: ambil semua visit tanpa filter
+      // Tidak perlu whereClause
+    } else if (teacherId && userRole === "ADMIN") {
       // Admin biasa bisa melihat:
       // 1. Visits yang ditujukan kepada mereka
       // 2. Visits yang didelegasikan ke mereka (legacy)

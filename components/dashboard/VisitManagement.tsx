@@ -120,6 +120,7 @@ export function VisitManagement({
   const [filteredVisits, setFilteredVisits] = useState<Visit[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterTeacherId, setFilterTeacherId] = useState<string>("all"); // Tambahan filter guru
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [visitNotes, setVisitNotes] = useState("");
@@ -155,6 +156,16 @@ export function VisitManagement({
       result = result.filter((v) => v.status === filterStatus);
     }
 
+    // Filter berdasarkan Guru BK (khusus SUPER_ADMIN)
+    if (isCoordinator && filterTeacherId && filterTeacherId !== "all") {
+      result = result.filter(
+        (v) =>
+          v.assignedAdminId === filterTeacherId ||
+          v.delegatedToTeacherId === filterTeacherId ||
+          v.targetTeacherId === filterTeacherId,
+      );
+    }
+
     // Search berdasarkan nama atau kelas
     if (searchQuery) {
       result = result.filter(
@@ -174,7 +185,7 @@ export function VisitManagement({
     });
 
     setFilteredVisits(result);
-  }, [visits, filterStatus, searchQuery]);
+  }, [visits, filterStatus, searchQuery, filterTeacherId, isCoordinator]);
 
   // Fetch available teachers for delegation
   const fetchTeachersForDelegation = async () => {
@@ -361,11 +372,14 @@ export function VisitManagement({
   const handleApproveTimeNegotiation = async (visit: Visit) => {
     if (!adminData?.id) return;
     try {
-      const response = await fetch(`/api/visits/${visit.id}/time-negotiation-response`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId: adminData.id, response: "approve" }),
-      });
+      const response = await fetch(
+        `/api/visits/${visit.id}/time-negotiation-response`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ adminId: adminData.id, response: "approve" }),
+        },
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Gagal menyetujui waktu");
@@ -373,7 +387,8 @@ export function VisitManagement({
       await loadVisits();
       toast({
         title: "Waktu Disetujui",
-        description: "Usulan waktu baru berhasil disetujui. Kunjungan terjadwal.",
+        description:
+          "Usulan waktu baru berhasil disetujui. Kunjungan terjadwal.",
       });
     } catch (error: any) {
       toast({
@@ -387,11 +402,14 @@ export function VisitManagement({
   const handleRejectTimeNegotiation = async (visit: Visit) => {
     if (!adminData?.id) return;
     try {
-      const response = await fetch(`/api/visits/${visit.id}/time-negotiation-response`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId: adminData.id, response: "reject" }),
-      });
+      const response = await fetch(
+        `/api/visits/${visit.id}/time-negotiation-response`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ adminId: adminData.id, response: "reject" }),
+        },
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Gagal menolak waktu");
@@ -865,7 +883,10 @@ export function VisitManagement({
           variant="outline"
           className="text-xs bg-purple-50 text-purple-700 border-purple-200"
         >
-          🕐 Negosiasi Waktu{visit.proposedVisitDate ? ` → ${visit.proposedVisitDate} ${visit.proposedVisitTime}` : ""}
+          🕐 Negosiasi Waktu
+          {visit.proposedVisitDate
+            ? ` → ${visit.proposedVisitDate} ${visit.proposedVisitTime}`
+            : ""}
         </Badge>
       );
     }
@@ -906,7 +927,10 @@ export function VisitManagement({
           variant="outline"
           className="text-xs bg-amber-50 text-amber-700 border-amber-200"
         >
-          ⏳ Menunggu (Hold){visit.waitExpiredAt ? ` — habis ${new Date(visit.waitExpiredAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}` : ""}
+          ⏳ Menunggu (Hold)
+          {visit.waitExpiredAt
+            ? ` — habis ${new Date(visit.waitExpiredAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`
+            : ""}
         </Badge>
       );
     }
@@ -956,123 +980,213 @@ export function VisitManagement({
                   <SelectItem value="cancelled">Dibatalkan</SelectItem>
                 </SelectContent>
               </Select>
+              {/* Filter Guru BK khusus SUPER_ADMIN */}
+              {adminData?.role === "SUPER_ADMIN" && (
+                <Select
+                  value={filterTeacherId}
+                  onValueChange={setFilterTeacherId}
+                >
+                  <SelectTrigger className="w-full sm:w-56">
+                    <SelectValue placeholder="Filter Guru BK Penanggung Jawab" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Guru BK</SelectItem>
+                    {/* Ambil unique list guru dari visits */}
+                    {Array.from(
+                      new Map(
+                        visits
+                          .flatMap((v) => [
+                            v.assignedAdmin,
+                            v.delegatedToTeacher,
+                            v.targetTeacher,
+                          ])
+                          .filter((t) => t && t.id)
+                          .map((t) => [t!.id, t!]),
+                      ).values(),
+                    ).map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name} ({t.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
         </CardHeader>
         <CardContent>
           {/* Statistics Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "pending" ? "all" : "pending")}
+            <div
+              onClick={() =>
+                setFilterStatus(filterStatus === "pending" ? "all" : "pending")
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "pending" ? "bg-yellow-100 border-yellow-400 shadow-sm ring-2 ring-yellow-400/50" : "bg-yellow-50 border-yellow-200"}`}
             >
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="text-sm text-yellow-700 font-medium">Pending</span>
+                <span className="text-sm text-yellow-700 font-medium">
+                  Pending
+                </span>
               </div>
               <p className="text-2xl font-bold text-yellow-600 mt-2">
                 {visits.filter((v) => v.status === "pending").length}
               </p>
             </div>
-            
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "waiting" ? "all" : "waiting")}
+
+            <div
+              onClick={() =>
+                setFilterStatus(filterStatus === "waiting" ? "all" : "waiting")
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "waiting" ? "bg-amber-100 border-amber-400 shadow-sm ring-2 ring-amber-400/50" : "bg-amber-50 border-amber-200"}`}
             >
               <div className="flex items-center gap-2">
                 <Timer className="h-4 w-4 text-amber-600" />
-                <span className="text-sm text-amber-700 font-medium">Menunggu</span>
+                <span className="text-sm text-amber-700 font-medium">
+                  Menunggu
+                </span>
               </div>
               <p className="text-2xl font-bold text-amber-600 mt-2">
                 {visits.filter((v) => v.status === "waiting").length}
               </p>
             </div>
 
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "awaiting_student" ? "all" : "awaiting_student")}
+            <div
+              onClick={() =>
+                setFilterStatus(
+                  filterStatus === "awaiting_student"
+                    ? "all"
+                    : "awaiting_student",
+                )
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "awaiting_student" ? "bg-orange-100 border-orange-400 shadow-sm ring-2 ring-orange-400/50" : "bg-orange-50 border-orange-200"}`}
             >
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <span className="text-sm text-orange-700 font-medium">Menunggu Siswa</span>
+                <span className="text-sm text-orange-700 font-medium">
+                  Menunggu Siswa
+                </span>
               </div>
               <p className="text-2xl font-bold text-orange-600 mt-2">
                 {visits.filter((v) => v.status === "awaiting_student").length}
               </p>
             </div>
 
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "pending_delegation" ? "all" : "pending_delegation")}
+            <div
+              onClick={() =>
+                setFilterStatus(
+                  filterStatus === "pending_delegation"
+                    ? "all"
+                    : "pending_delegation",
+                )
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "pending_delegation" ? "bg-purple-100 border-purple-400 shadow-sm ring-2 ring-purple-400/50" : "bg-purple-50 border-purple-200"}`}
             >
               <div className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4 text-purple-600" />
-                <span className="text-sm text-purple-700 font-medium">Menunggu Guru</span>
+                <span className="text-sm text-purple-700 font-medium">
+                  Menunggu Guru
+                </span>
               </div>
               <p className="text-2xl font-bold text-purple-600 mt-2">
                 {visits.filter((v) => v.status === "pending_delegation").length}
               </p>
             </div>
 
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "pending_time_negotiation" ? "all" : "pending_time_negotiation")}
+            <div
+              onClick={() =>
+                setFilterStatus(
+                  filterStatus === "pending_time_negotiation"
+                    ? "all"
+                    : "pending_time_negotiation",
+                )
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "pending_time_negotiation" ? "bg-cyan-100 border-cyan-400 shadow-sm ring-2 ring-cyan-400/50" : "bg-cyan-50 border-cyan-200"}`}
             >
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-cyan-600" />
-                <span className="text-sm text-cyan-700 font-medium">Negosiasi Waktu</span>
+                <span className="text-sm text-cyan-700 font-medium">
+                  Negosiasi Waktu
+                </span>
               </div>
               <p className="text-2xl font-bold text-cyan-600 mt-2">
-                {visits.filter((v) => v.status === "pending_time_negotiation").length}
+                {
+                  visits.filter((v) => v.status === "pending_time_negotiation")
+                    .length
+                }
               </p>
             </div>
 
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "forwarded" ? "all" : "forwarded")}
+            <div
+              onClick={() =>
+                setFilterStatus(
+                  filterStatus === "forwarded" ? "all" : "forwarded",
+                )
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "forwarded" ? "bg-blue-100 border-blue-400 shadow-sm ring-2 ring-blue-400/50" : "bg-blue-50 border-blue-200"}`}
             >
               <div className="flex items-center gap-2">
                 <Forward className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-700 font-medium">Diserahkan</span>
+                <span className="text-sm text-blue-700 font-medium">
+                  Diserahkan
+                </span>
               </div>
               <p className="text-2xl font-bold text-blue-600 mt-2">
                 {visits.filter((v) => v.status === "forwarded").length}
               </p>
             </div>
 
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "approved" ? "all" : "approved")}
+            <div
+              onClick={() =>
+                setFilterStatus(
+                  filterStatus === "approved" ? "all" : "approved",
+                )
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "approved" ? "bg-indigo-100 border-indigo-400 shadow-sm ring-2 ring-indigo-400/50" : "bg-indigo-50 border-indigo-200"}`}
             >
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-indigo-600" />
-                <span className="text-sm text-indigo-700 font-medium">Disetujui</span>
+                <span className="text-sm text-indigo-700 font-medium">
+                  Disetujui
+                </span>
               </div>
               <p className="text-2xl font-bold text-indigo-600 mt-2">
                 {visits.filter((v) => v.status === "approved").length}
               </p>
             </div>
 
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "completed" ? "all" : "completed")}
+            <div
+              onClick={() =>
+                setFilterStatus(
+                  filterStatus === "completed" ? "all" : "completed",
+                )
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "completed" ? "bg-green-100 border-green-400 shadow-sm ring-2 ring-green-400/50" : "bg-green-50 border-green-200"}`}
             >
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm text-green-700 font-medium">Selesai</span>
+                <span className="text-sm text-green-700 font-medium">
+                  Selesai
+                </span>
               </div>
               <p className="text-2xl font-bold text-green-600 mt-2">
                 {visits.filter((v) => v.status === "completed").length}
               </p>
             </div>
 
-            <div 
-              onClick={() => setFilterStatus(filterStatus === "cancelled" ? "all" : "cancelled")}
+            <div
+              onClick={() =>
+                setFilterStatus(
+                  filterStatus === "cancelled" ? "all" : "cancelled",
+                )
+              }
               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "cancelled" ? "bg-red-100 border-red-400 shadow-sm ring-2 ring-red-400/50" : "bg-red-50 border-red-200"}`}
             >
               <div className="flex items-center gap-2">
                 <XCircle className="h-4 w-4 text-red-600" />
-                <span className="text-sm text-red-700 font-medium">Dibatalkan</span>
+                <span className="text-sm text-red-700 font-medium">
+                  Dibatalkan
+                </span>
               </div>
               <p className="text-2xl font-bold text-red-600 mt-2">
                 {visits.filter((v) => v.status === "cancelled").length}
@@ -1183,8 +1297,11 @@ export function VisitManagement({
                             📅 Jadwal awal: {v.visitDate} | ⏰ {v.visitTime} WIB
                           </p>
                           <p className="text-xs text-purple-600 mt-1 font-medium">
-                            🕐 Usulan baru: {v.proposedVisitDate} | ⏰ {v.proposedVisitTime} WIB
-                            {v.timeNegotiationStep ? ` (Negosiasi ke-${v.timeNegotiationStep})` : ""}
+                            🕐 Usulan baru: {v.proposedVisitDate} | ⏰{" "}
+                            {v.proposedVisitTime} WIB
+                            {v.timeNegotiationStep
+                              ? ` (Negosiasi ke-${v.timeNegotiationStep})`
+                              : ""}
                           </p>
                         </div>
                         <div className="flex gap-2 ml-4">
@@ -1433,6 +1550,11 @@ export function VisitManagement({
                   <TableHead className="font-semibold">Nama Murid</TableHead>
                   <TableHead className="font-semibold">Kelas</TableHead>
                   <TableHead className="font-semibold">Guru BK</TableHead>
+                  {adminData?.role === "SUPER_ADMIN" && (
+                    <TableHead className="font-semibold">
+                      Guru BK Penanggung Jawab
+                    </TableHead>
+                  )}
                   <TableHead className="font-semibold">Tanggal</TableHead>
                   <TableHead className="font-semibold">Waktu</TableHead>
                   <TableHead className="font-semibold">Keperluan</TableHead>
@@ -1473,7 +1595,19 @@ export function VisitManagement({
                       <TableCell>
                         {visit.targetTeacher ? (
                           <div className="flex flex-col gap-1">
-                            <span className="text-sm">
+                            <span
+                              className={`text-sm ${adminData?.role === "SUPER_ADMIN" ? "cursor-pointer hover:underline text-blue-600 font-medium" : ""}`}
+                              onClick={() => {
+                                if (adminData?.role === "SUPER_ADMIN") {
+                                  setFilterTeacherId(visit.targetTeacher!.id);
+                                }
+                              }}
+                              title={
+                                adminData?.role === "SUPER_ADMIN"
+                                  ? "Klik untuk melihat laporan laporan dari guru ini"
+                                  : undefined
+                              }
+                            >
                               {visit.targetTeacher.name}
                             </span>
                             {renderDelegationInfo(visit)}
@@ -1482,6 +1616,44 @@ export function VisitManagement({
                           <span className="text-sm text-slate-400">-</span>
                         )}
                       </TableCell>
+                      {adminData?.role === "SUPER_ADMIN" && (
+                        <TableCell>
+                          {/* Guru BK Penanggung Jawab: prioritas assignedAdmin > delegatedToTeacher > targetTeacher */}
+                          {visit.assignedAdmin ? (
+                            <span
+                              className="text-sm font-semibold text-indigo-700 cursor-pointer hover:underline"
+                              onClick={() =>
+                                setFilterTeacherId(visit.assignedAdmin!.id)
+                              }
+                              title="Klik untuk melihat semua laporan dari guru ini"
+                            >
+                              {visit.assignedAdmin.name}
+                            </span>
+                          ) : visit.delegatedToTeacher ? (
+                            <span
+                              className="text-sm font-semibold text-amber-700 cursor-pointer hover:underline"
+                              onClick={() =>
+                                setFilterTeacherId(visit.delegatedToTeacher!.id)
+                              }
+                              title="Klik untuk melihat semua laporan dari guru ini"
+                            >
+                              {visit.delegatedToTeacher.name}
+                            </span>
+                          ) : visit.targetTeacher ? (
+                            <span
+                              className="text-sm font-semibold text-blue-700 cursor-pointer hover:underline"
+                              onClick={() =>
+                                setFilterTeacherId(visit.targetTeacher!.id)
+                              }
+                              title="Klik untuk melihat semua laporan dari guru ini"
+                            >
+                              {visit.targetTeacher.name}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-slate-400">-</span>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="h-4 w-4 text-slate-400" />
@@ -1697,7 +1869,7 @@ export function VisitManagement({
 
                 {/* Timeline Notes */}
                 {selectedVisit.visitNotesTimeline &&
-                  selectedVisit.visitNotesTimeline.length > 0 ? (
+                selectedVisit.visitNotesTimeline.length > 0 ? (
                   <div className="space-y-4 pl-4 border-l-2 border-slate-200">
                     {selectedVisit.visitNotesTimeline.map((note, idx) => (
                       <div key={note.id || idx} className="relative">
@@ -2016,13 +2188,16 @@ export function VisitManagement({
       </Dialog>
 
       {/* Wait Duration Dialog */}
-      <Dialog open={isWaitDialogOpen} onOpenChange={(open) => {
-        setIsWaitDialogOpen(open);
-        if (!open) {
-          setVisitToWait(null);
-          setWaitDuration("15");
-        }
-      }}>
+      <Dialog
+        open={isWaitDialogOpen}
+        onOpenChange={(open) => {
+          setIsWaitDialogOpen(open);
+          if (!open) {
+            setVisitToWait(null);
+            setWaitDuration("15");
+          }
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-amber-700">
@@ -2030,14 +2205,21 @@ export function VisitManagement({
               Minta Siswa Menunggu
             </DialogTitle>
             <DialogDescription>
-              Tentukan berapa lama siswa harus menunggu. Jika waktu habis, kunjungan akan otomatis dibatalkan.
+              Tentukan berapa lama siswa harus menunggu. Jika waktu habis,
+              kunjungan akan otomatis dibatalkan.
             </DialogDescription>
           </DialogHeader>
           {visitToWait && (
             <div className="py-4 space-y-4">
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-                <p><strong>Siswa:</strong> {visitToWait.studentName} ({visitToWait.class})</p>
-                <p><strong>Jadwal:</strong> {visitToWait.visitDate} | {visitToWait.visitTime} WIB</p>
+                <p>
+                  <strong>Siswa:</strong> {visitToWait.studentName} (
+                  {visitToWait.class})
+                </p>
+                <p>
+                  <strong>Jadwal:</strong> {visitToWait.visitDate} |{" "}
+                  {visitToWait.visitTime} WIB
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="waitDuration">Durasi Tunggu (menit)</Label>

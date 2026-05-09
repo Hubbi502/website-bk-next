@@ -40,7 +40,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, ShieldCheck, Shield, User, Lock, Key, AlertTriangle, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, ShieldCheck, Shield, User, Lock, Key, AlertTriangle, Search, FileText } from "lucide-react";
 
 interface Admin {
   id: string;
@@ -57,9 +57,10 @@ interface Admin {
 
 interface AdminManagementProps {
   currentAdminId: string;
+  visits?: any[];
 }
 
-export function AdminManagement({ currentAdminId }: AdminManagementProps) {
+export function AdminManagement({ currentAdminId, visits = [] }: AdminManagementProps) {
   const { toast } = useToast();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,6 +74,33 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
     password: "",
     role: "ADMIN" as "ADMIN" | "SUPER_ADMIN",
   });
+
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedAdminForReport, setSelectedAdminForReport] = useState<Admin | null>(null);
+
+  const openReportModal = (admin: Admin) => {
+    setSelectedAdminForReport(admin);
+    setIsReportModalOpen(true);
+  };
+
+  const getTeacherStats = (teacherId: string) => {
+    const teacherVisits = visits.filter(v => 
+      v.targetTeacherId === teacherId || 
+      v.delegatedToTeacherId === teacherId || 
+      v.assignedAdminId === teacherId
+    );
+
+    const masuk = teacherVisits.length;
+    const ditolak = teacherVisits.filter(v => v.status === "cancelled").length;
+    const ditunda = teacherVisits.filter(v => v.status === "waiting" || v.status === "pending" || v.status === "pending_time_negotiation" || v.status === "awaiting_student").length;
+    const didelegasikan = teacherVisits.filter(v => v.status === "forwarded" || v.status === "pending_delegation").length;
+    const disetujui = teacherVisits.filter(v => v.status === "approved").length;
+    const selesai = teacherVisits.filter(v => v.status === "completed").length;
+
+    return { masuk, ditolak, ditunda, didelegasikan, disetujui, selesai };
+  };
+
+  const currentStats = selectedAdminForReport ? getTeacherStats(selectedAdminForReport.id) : null;
 
   useEffect(() => {
     loadAdmins();
@@ -350,6 +378,15 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
                       </TableCell>
                       <TableCell className="text-right pr-4 sm:pr-6">
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:text-green-600 hover:bg-green-50 transition-colors"
+                            onClick={() => openReportModal(admin)}
+                            title="Lihat Laporan"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -654,6 +691,77 @@ export function AdminManagement({ currentAdminId }: AdminManagementProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Dialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-none shadow-xl bg-white">
+          <DialogHeader className="p-6 pb-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white relative">
+            <DialogTitle className="text-xl md:text-2xl font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6" />
+              Laporan Kinerja: {selectedAdminForReport?.name}
+            </DialogTitle>
+            <DialogDescription className="text-blue-100 mt-1">
+              Ringkasan statistik kunjungan murid untuk guru ini.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 space-y-6 bg-slate-50">
+            {currentStats && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Card className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-blue-500 h-1 w-full" />
+                  <CardContent className="p-5 flex flex-col items-center text-center">
+                    <span className="text-sm font-medium text-slate-500 mb-1">Total Masuk</span>
+                    <span className="text-3xl font-bold text-slate-800">{currentStats.masuk}</span>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-green-500 h-1 w-full" />
+                  <CardContent className="p-5 flex flex-col items-center text-center">
+                    <span className="text-sm font-medium text-slate-500 mb-1">Disetujui</span>
+                    <span className="text-3xl font-bold text-green-600">{currentStats.disetujui}</span>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-amber-500 h-1 w-full" />
+                  <CardContent className="p-5 flex flex-col items-center text-center">
+                    <span className="text-sm font-medium text-slate-500 mb-1">Ditunda</span>
+                    <span className="text-3xl font-bold text-amber-600">{currentStats.ditunda}</span>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-red-500 h-1 w-full" />
+                  <CardContent className="p-5 flex flex-col items-center text-center">
+                    <span className="text-sm font-medium text-slate-500 mb-1">Ditolak</span>
+                    <span className="text-3xl font-bold text-red-600">{currentStats.ditolak}</span>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-indigo-500 h-1 w-full" />
+                  <CardContent className="p-5 flex flex-col items-center text-center">
+                    <span className="text-sm font-medium text-slate-500 mb-1">Didelegasikan</span>
+                    <span className="text-3xl font-bold text-indigo-600">{currentStats.didelegasikan}</span>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-emerald-500 h-1 w-full" />
+                  <CardContent className="p-5 flex flex-col items-center text-center">
+                    <span className="text-sm font-medium text-slate-500 mb-1">Selesai</span>
+                    <span className="text-3xl font-bold text-emerald-600">{currentStats.selesai}</span>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="p-4 bg-white border-t border-slate-100 sm:justify-end">
+            <Button onClick={() => setIsReportModalOpen(false)} className="w-full sm:w-auto">Tutup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
