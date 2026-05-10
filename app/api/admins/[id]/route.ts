@@ -39,6 +39,17 @@ export async function GET(
         name: true,
         username: true,
         role: true,
+        profileImageUrl: true,
+        shortBio: true,
+        bio: true,
+        positionTitle: true,
+        education: true,
+        expertise: true,
+        phone: true,
+        emailPublic: true,
+        officeLocation: true,
+        officeHours: true,
+        socialLinks: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -100,7 +111,23 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, username, password, role } = body;
+    const { 
+      name, 
+      username, 
+      password, 
+      role,
+      profileImageUrl,
+      shortBio,
+      bio,
+      positionTitle,
+      education,
+      expertise,
+      phone,
+      emailPublic,
+      officeLocation,
+      officeHours,
+      socialLinks
+    } = body;
 
     // Check if admin exists
     const existingAdmin = await prisma.admin.findUnique({
@@ -130,13 +157,28 @@ export async function PUT(
 
     // Prepare update data
     const updateData: any = {};
-    if (name) updateData.name = name;
-    if (username) updateData.username = username;
-    if (role && (role === "ADMIN" || role === "SUPER_ADMIN")) {
+    if (name !== undefined) updateData.name = name;
+    if (username !== undefined) updateData.username = username;
+    if (role !== undefined && (role === "ADMIN" || role === "SUPER_ADMIN")) {
       updateData.role = role;
     }
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
+    }
+    
+    // Add optional fields
+    if (profileImageUrl !== undefined) updateData.profileImageUrl = profileImageUrl;
+    if (shortBio !== undefined) updateData.shortBio = shortBio;
+    if (bio !== undefined) updateData.bio = bio;
+    if (positionTitle !== undefined) updateData.positionTitle = positionTitle;
+    if (education !== undefined) updateData.education = education;
+    if (expertise !== undefined) updateData.expertise = expertise;
+    if (phone !== undefined) updateData.phone = phone;
+    if (emailPublic !== undefined) updateData.emailPublic = emailPublic;
+    if (officeLocation !== undefined) updateData.officeLocation = officeLocation;
+    if (officeHours !== undefined) updateData.officeHours = officeHours;
+    if (socialLinks !== undefined) {
+      updateData.socialLinks = typeof socialLinks === 'string' ? socialLinks : (socialLinks ? JSON.stringify(socialLinks) : null);
     }
 
     // Update admin
@@ -148,6 +190,9 @@ export async function PUT(
         name: true,
         username: true,
         role: true,
+        profileImageUrl: true,
+        shortBio: true,
+        positionTitle: true,
         updatedAt: true,
       },
     });

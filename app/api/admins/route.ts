@@ -35,6 +35,9 @@ export async function GET(request: NextRequest) {
         name: true,
         username: true,
         role: true,
+        profileImageUrl: true,
+        shortBio: true,
+        positionTitle: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -94,12 +97,28 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, username, password, role } = body;
+    const { 
+      name, 
+      username, 
+      password, 
+      role,
+      profileImageUrl,
+      shortBio,
+      bio,
+      positionTitle,
+      education,
+      expertise,
+      phone,
+      emailPublic,
+      officeLocation,
+      officeHours,
+      socialLinks 
+    } = body;
 
     // Validation
     if (!name || !username || !password || !role) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: "Name, username, password and role are required" },
         { status: 400 }
       );
     }
@@ -133,12 +152,24 @@ export async function POST(request: NextRequest) {
         username,
         password: hashedPassword,
         role,
+        profileImageUrl: profileImageUrl || null,
+        shortBio: shortBio || null,
+        bio: bio || null,
+        positionTitle: positionTitle || null,
+        education: education || null,
+        expertise: expertise || null,
+        phone: phone || null,
+        emailPublic: emailPublic || null,
+        officeLocation: officeLocation || null,
+        officeHours: officeHours || null,
+        socialLinks: socialLinks ? (typeof socialLinks === 'string' ? socialLinks : JSON.stringify(socialLinks)) : null,
       },
       select: {
         id: true,
         name: true,
         username: true,
         role: true,
+        positionTitle: true,
         createdAt: true,
       },
     });

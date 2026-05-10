@@ -92,6 +92,15 @@ async function main() {
       password: adminPassword,
       role: "SUPER_ADMIN",
       assignedClasses: [],
+      profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
+      shortBio: "Koordinator BK dan Administrator Sistem",
+      bio: "Bertanggung jawab atas administrasi sistem BK dan koordinator program bimbingan konseling di sekolah.",
+      positionTitle: "Koordinator BK",
+      education: "S2 Bimbingan dan Konseling",
+      expertise: "Manajemen Program BK",
+      emailPublic: "koordinator.bk@sekolah.id",
+      officeLocation: "Ruang Koordinator BK",
+      officeHours: "Senin - Jumat, 07:00 - 16:00",
     },
   });
 
@@ -105,6 +114,16 @@ async function main() {
       password: adminPassword,
       role: "ADMIN",
       assignedClasses: allClasses.filter((c) => c.startsWith("X ")),
+      profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Siti",
+      shortBio: "Guru BK Kelas X (RPL, DKV, SIJA)",
+      bio: "Saya adalah guru BK yang berdedikasi membantu siswa kelas X dalam beradaptasi dengan lingkungan sekolah baru.",
+      positionTitle: "Guru BK",
+      education: "S1 Bimbingan dan Konseling Universitas Pendidikan Indonesia",
+      expertise: "Konseling Karir, Adaptasi Siswa",
+      phone: "081234567890",
+      emailPublic: "siti.nurhaliza@sekolah.id",
+      officeLocation: "Ruang BK 1, Lantai 1",
+      officeHours: "Senin - Jumat, 08:00 - 15:00",
     },
   });
 

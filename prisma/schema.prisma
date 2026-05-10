@@ -27,6 +27,20 @@ model Admin {
   password        String // Should be hashed in production
   role            AdminRole @default(ADMIN)
   assignedClasses String[]  @default([]) // Kelas yang ditangani guru ini (kosong = belum ada assignment)
+  
+  // Profile fields
+  profileImageUrl String?
+  shortBio        String?   @db.Text
+  bio             String?   @db.Text
+  positionTitle   String?
+  education       String?
+  expertise       String?
+  phone           String?
+  emailPublic     String?
+  officeLocation  String?
+  officeHours     String?
+  socialLinks     String?   @db.Text
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
