@@ -25,10 +25,6 @@ import {
   Forward,
   UserCheck,
   UserX,
-  Ban,
-  RefreshCw,
-  Inbox,
-  Timer,
 } from "lucide-react";
 
 export interface VisitNote {
@@ -49,16 +45,7 @@ interface Visit {
   visitDate: string;
   visitTime: string;
   reason: string;
-  status:
-  | "pending"
-  | "approved"
-  | "forwarded"
-  | "completed"
-  | "cancelled"
-  | "awaiting_student"
-  | "pending_delegation"
-  | "pending_time_negotiation"
-  | "waiting";
+  status: "pending" | "approved" | "completed" | "cancelled" | "waiting" | "forwarded" | "awaiting_student" | "pending_delegation" | "pending_time_negotiation";
   notes?: string;
   visitNotesTimeline?: VisitNote[];
   approvedBy?: string;
@@ -78,20 +65,6 @@ interface Visit {
   };
   delegationStatus?: string | null;
   delegationNotes?: string | null;
-  assignedAdminId?: string;
-  assignedAdmin?: {
-    id: string;
-    name: string;
-    role: string;
-  };
-  rejectedAdminIds?: string[];
-  delegationStep?: number;
-  proposedVisitDate?: string;
-  proposedVisitTime?: string;
-  timeNegotiationStep?: number;
-  timeNegotiationNotes?: string;
-  waitDurationMinutes?: number;
-  waitExpiredAt?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -120,7 +93,6 @@ export function VisitManagement({
   const [filteredVisits, setFilteredVisits] = useState<Visit[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterTeacherId, setFilterTeacherId] = useState<string>("all"); // Tambahan filter guru
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [visitNotes, setVisitNotes] = useState("");
@@ -141,10 +113,11 @@ export function VisitManagement({
   const [delegationNotes, setDelegationNotes] = useState("");
   const [isDelegating, setIsDelegating] = useState(false);
 
-  // Wait dialog state
-  const [isWaitDialogOpen, setIsWaitDialogOpen] = useState(false);
-  const [visitToWait, setVisitToWait] = useState<Visit | null>(null);
-  const [waitDuration, setWaitDuration] = useState("15");
+  // Forward to coordinator state
+  const [isForwardDialogOpen, setIsForwardDialogOpen] = useState(false);
+  const [visitToForward, setVisitToForward] = useState<Visit | null>(null);
+  const [forwardReason, setForwardReason] = useState("");
+  const [isForwarding, setIsForwarding] = useState(false);
 
   const isCoordinator = adminData?.role === "SUPER_ADMIN";
 
@@ -154,16 +127,6 @@ export function VisitManagement({
     // Filter berdasarkan status
     if (filterStatus !== "all") {
       result = result.filter((v) => v.status === filterStatus);
-    }
-
-    // Filter berdasarkan Guru BK (khusus SUPER_ADMIN)
-    if (isCoordinator && filterTeacherId && filterTeacherId !== "all") {
-      result = result.filter(
-        (v) =>
-          v.assignedAdminId === filterTeacherId ||
-          v.delegatedToTeacherId === filterTeacherId ||
-          v.targetTeacherId === filterTeacherId,
-      );
     }
 
     // Search berdasarkan nama atau kelas
@@ -185,7 +148,7 @@ export function VisitManagement({
     });
 
     setFilteredVisits(result);
-  }, [visits, filterStatus, searchQuery, filterTeacherId, isCoordinator]);
+  }, [visits, filterStatus, searchQuery]);
 
   // Fetch available teachers for delegation
   const fetchTeachersForDelegation = async () => {
@@ -232,9 +195,6 @@ export function VisitManagement({
         pending: "Pending",
         approved: "Disetujui",
         forwarded: "Diserahkan",
-        awaiting_student: "Menunggu Keputusan Siswa",
-        pending_delegation: "Menunggu Konfirmasi Guru",
-        pending_time_negotiation: "Menunggu Konfirmasi Waktu",
         completed: "Selesai",
         cancelled: "Dibatalkan",
       };
@@ -252,179 +212,49 @@ export function VisitManagement({
     }
   };
 
-  // --- Handle "Tunggu" (Wait) ---
-  const handleWaitVisit = async () => {
-    if (!visitToWait || !adminData?.id) return;
+  // Open forward dialog
+  const handleOpenForwardDialog = (visit: Visit) => {
+    setVisitToForward(visit);
+    setForwardReason("");
+    setIsForwardDialogOpen(true);
+  };
+
+  // Forward visit to coordinator with reason
+  const handleForwardToCoordinator = async () => {
+    if (!visitToForward) return;
+
+    setIsForwarding(true);
     try {
-      const response = await fetch(`/api/visits/${visitToWait.id}`, {
+      const response = await fetch(`/api/visits/${visitToForward.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "wait",
-          waitDurationMinutes: parseInt(waitDuration) || 15,
-          approvedBy: adminData.id,
+          action: "forward",
+          forwardReason: forwardReason || undefined,
         }),
       });
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Gagal mengubah status");
-      }
-      await loadVisits();
-      setIsWaitDialogOpen(false);
-      setVisitToWait(null);
-      setWaitDuration("15");
-      toast({
-        title: "Siswa Diminta Menunggu",
-        description: `Kunjungan akan otomatis dibatalkan dalam ${waitDuration} menit jika tidak diproses.`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Gagal mengubah status",
-        variant: "destructive",
-      });
-    }
-  };
 
-  // --- NEW: Handle "Tidak Tersedia" (teacher marks self unavailable) ---
-  const handleMarkUnavailable = async (visit: Visit) => {
-    if (!adminData?.id) return;
-    try {
-      const response = await fetch(`/api/visits/${visit.id}/unavailable`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId: adminData.id }),
-      });
       const data = await response.json();
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Gagal menandai tidak tersedia");
+        throw new Error(data.error || "Gagal menyerahkan ke koordinator");
       }
-      await loadVisits();
-      toast({
-        title: "Ditandai Tidak Tersedia",
-        description: "Siswa akan diberitahu untuk memilih guru BK lain.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Gagal menandai tidak tersedia",
-        variant: "destructive",
-      });
-    }
-  };
 
-  // --- NEW: Handle teacher approve/reject delegation ---
-  const handleTeacherApprove = async (visit: Visit) => {
-    if (!adminData?.id) return;
-    try {
-      const response = await fetch(`/api/visits/${visit.id}/teacher-response`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ response: "approve", adminId: adminData.id }),
-      });
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Gagal menerima delegasi");
-      }
       await loadVisits();
+      setIsForwardDialogOpen(false);
+      setVisitToForward(null);
       toast({
-        title: "Delegasi Diterima",
-        description: "Kunjungan berhasil disetujui.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Gagal menerima delegasi",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleTeacherReject = async (visit: Visit) => {
-    if (!adminData?.id) return;
-    try {
-      const response = await fetch(`/api/visits/${visit.id}/teacher-response`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ response: "reject", adminId: adminData.id }),
-      });
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Gagal menolak delegasi");
-      }
-      await loadVisits();
-      toast({
-        title: "Delegasi Ditolak",
-        description: data.data?.noTeachersAvailable
-          ? "Semua guru telah menolak. Kunjungan dibatalkan otomatis."
-          : "Siswa akan diminta memilih guru lain.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Gagal menolak delegasi",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // --- Handle time negotiation approve/reject ---
-  const handleApproveTimeNegotiation = async (visit: Visit) => {
-    if (!adminData?.id) return;
-    try {
-      const response = await fetch(
-        `/api/visits/${visit.id}/time-negotiation-response`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ adminId: adminData.id, response: "approve" }),
-        },
-      );
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Gagal menyetujui waktu");
-      }
-      await loadVisits();
-      toast({
-        title: "Waktu Disetujui",
+        title: "Diserahkan ke Koordinator",
         description:
-          "Usulan waktu baru berhasil disetujui. Kunjungan terjadwal.",
+          "Kunjungan berhasil diserahkan ke koordinator untuk didelegasikan ke guru lain.",
       });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Gagal menyetujui waktu",
+        description: error.message || "Gagal menyerahkan ke koordinator",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleRejectTimeNegotiation = async (visit: Visit) => {
-    if (!adminData?.id) return;
-    try {
-      const response = await fetch(
-        `/api/visits/${visit.id}/time-negotiation-response`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ adminId: adminData.id, response: "reject" }),
-        },
-      );
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Gagal menolak waktu");
-      }
-      await loadVisits();
-      toast({
-        title: "Waktu Ditolak",
-        description: "Siswa akan diminta memilih opsi lain.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Gagal menolak waktu",
-        variant: "destructive",
-      });
+    } finally {
+      setIsForwarding(false);
     }
   };
 
@@ -568,9 +398,9 @@ export function VisitManagement({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           note: newMeetingNote,
-          isSolved: isMeetingSolved,
+          isSolved: isMeetingSolved 
         }),
       });
 
@@ -586,20 +416,17 @@ export function VisitManagement({
       } else {
         await loadVisits();
       }
-
+      
       // Update selectedVisit manually to show new note in UI instantly
       setSelectedVisit({
         ...selectedVisit,
         status: isMeetingSolved ? "completed" : selectedVisit.status,
-        visitNotesTimeline: [
-          ...(selectedVisit.visitNotesTimeline || []),
-          data.data,
-        ],
+        visitNotesTimeline: [...(selectedVisit.visitNotesTimeline || []), data.data]
       });
 
       setNewMeetingNote("");
       setIsMeetingSolved(false);
-
+      
       toast({
         title: "Berhasil",
         description: "Catatan pertemuan berhasil ditambahkan",
@@ -658,11 +485,6 @@ export function VisitManagement({
     visit.delegatedToTeacherId === adminData?.id &&
     visit.delegationStatus === "pending";
 
-  // Helper: check if this visit is assigned TO the current admin via new delegation flow
-  const isAssignedToMe = (visit: Visit) =>
-    visit.assignedAdminId === adminData?.id &&
-    visit.status === "pending_delegation";
-
   // Render action buttons based on role and visit state
   const renderActionButtons = (visit: Visit) => {
     const buttons: JSX.Element[] = [];
@@ -680,62 +502,7 @@ export function VisitManagement({
       </Button>,
     );
 
-    // CASE 0: New delegation flow — visit assigned to me, pending my response
-    if (isAssignedToMe(visit)) {
-      buttons.push(
-        <Button
-          key="accept-new"
-          size="sm"
-          onClick={() => handleTeacherApprove(visit)}
-          className="bg-green-600 hover:bg-green-700"
-          title="Terima Delegasi"
-        >
-          <UserCheck className="h-4 w-4" />
-        </Button>,
-        <Button
-          key="reject-new"
-          size="sm"
-          variant="destructive"
-          onClick={() => handleTeacherReject(visit)}
-          title="Tolak Delegasi"
-        >
-          <UserX className="h-4 w-4" />
-        </Button>,
-      );
-      return <div className="flex gap-2">{buttons}</div>;
-    }
-
-    // CASE 0.5: Time negotiation — visit waiting for my time response
-    if (
-      visit.status === "pending_time_negotiation" &&
-      visit.targetTeacherId === adminData?.id
-    ) {
-      buttons.push(
-        <Button
-          key="approve-time"
-          size="sm"
-          onClick={() => handleApproveTimeNegotiation(visit)}
-          className="bg-green-600 hover:bg-green-700"
-          title="Setujui Waktu Baru"
-        >
-          <CheckCircle className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Setujui</span>
-        </Button>,
-        <Button
-          key="reject-time"
-          size="sm"
-          variant="destructive"
-          onClick={() => handleRejectTimeNegotiation(visit)}
-          title="Tolak Waktu Baru"
-        >
-          <XCircle className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Tolak</span>
-        </Button>,
-      );
-      return <div className="flex gap-2">{buttons}</div>;
-    }
-
-    // CASE 1: Visit is delegated to me and pending my acceptance (legacy flow)
+    // CASE 1: Visit is delegated to me and pending my acceptance
     if (isDelegatedToMe(visit)) {
       buttons.push(
         <Button
@@ -773,28 +540,14 @@ export function VisitManagement({
           <CheckCircle className="h-4 w-4" />
         </Button>,
         <Button
-          key="wait"
+          key="forward"
           size="sm"
           variant="outline"
-          onClick={() => {
-            setVisitToWait(visit);
-            setWaitDuration("15");
-            setIsWaitDialogOpen(true);
-          }}
-          className="border-amber-500 text-amber-600 hover:bg-amber-50"
-          title="Minta Siswa Menunggu"
+          onClick={() => handleOpenForwardDialog(visit)}
+          className="border-blue-600 text-blue-600 hover:bg-blue-50"
+          title="Serahkan ke Koordinator"
         >
-          <Timer className="h-4 w-4" />
-        </Button>,
-        <Button
-          key="unavailable"
-          size="sm"
-          variant="outline"
-          onClick={() => handleMarkUnavailable(visit)}
-          className="border-orange-500 text-orange-600 hover:bg-orange-50"
-          title="Tandai Tidak Tersedia"
-        >
-          <Ban className="h-4 w-4" />
+          <Forward className="h-4 w-4" />
         </Button>,
       );
     }
@@ -856,41 +609,6 @@ export function VisitManagement({
 
   // Render delegation info badge for table
   const renderDelegationInfo = (visit: Visit) => {
-    // New delegation flow badges
-    if (visit.status === "awaiting_student") {
-      return (
-        <Badge
-          variant="outline"
-          className="text-xs bg-orange-50 text-orange-700 border-orange-200"
-        >
-          ⏳ Menunggu keputusan siswa
-        </Badge>
-      );
-    }
-    if (visit.status === "pending_delegation" && visit.assignedAdmin) {
-      return (
-        <Badge
-          variant="outline"
-          className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200"
-        >
-          🔄 Delegasi → {visit.assignedAdmin.name} (Menunggu)
-        </Badge>
-      );
-    }
-    if (visit.status === "pending_time_negotiation") {
-      return (
-        <Badge
-          variant="outline"
-          className="text-xs bg-purple-50 text-purple-700 border-purple-200"
-        >
-          🕐 Negosiasi Waktu
-          {visit.proposedVisitDate
-            ? ` → ${visit.proposedVisitDate} ${visit.proposedVisitTime}`
-            : ""}
-        </Badge>
-      );
-    }
-    // Legacy delegation flow badges
     if (visit.status === "forwarded") {
       if (visit.delegationStatus === "pending" && visit.delegatedToTeacher) {
         return (
@@ -918,19 +636,6 @@ export function VisitManagement({
           className="text-xs bg-blue-50 text-blue-700 border-blue-200"
         >
           Menunggu delegasi koordinator
-        </Badge>
-      );
-    }
-    if (visit.status === "waiting") {
-      return (
-        <Badge
-          variant="outline"
-          className="text-xs bg-amber-50 text-amber-700 border-amber-200"
-        >
-          ⏳ Menunggu (Hold)
-          {visit.waitExpiredAt
-            ? ` — habis ${new Date(visit.waitExpiredAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`
-            : ""}
         </Badge>
       );
     }
@@ -964,371 +669,64 @@ export function VisitManagement({
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="waiting">Menunggu (Tunggu)</SelectItem>
-                  <SelectItem value="awaiting_student">
-                    Menunggu Siswa
-                  </SelectItem>
-                  <SelectItem value="pending_delegation">
-                    Menunggu Guru
-                  </SelectItem>
-                  <SelectItem value="pending_time_negotiation">
-                    Negosiasi Waktu
-                  </SelectItem>
                   <SelectItem value="approved">Disetujui</SelectItem>
                   <SelectItem value="forwarded">Diserahkan</SelectItem>
                   <SelectItem value="completed">Selesai</SelectItem>
                   <SelectItem value="cancelled">Dibatalkan</SelectItem>
                 </SelectContent>
               </Select>
-              {/* Filter Guru BK khusus SUPER_ADMIN */}
-              {adminData?.role === "SUPER_ADMIN" && (
-                <Select
-                  value={filterTeacherId}
-                  onValueChange={setFilterTeacherId}
-                >
-                  <SelectTrigger className="w-full sm:w-56">
-                    <SelectValue placeholder="Filter Guru BK Penanggung Jawab" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Guru BK</SelectItem>
-                    {/* Ambil unique list guru dari visits */}
-                    {Array.from(
-                      new Map(
-                        visits
-                          .flatMap((v) => [
-                            v.assignedAdmin,
-                            v.delegatedToTeacher,
-                            v.targetTeacher,
-                          ])
-                          .filter((t) => t && t.id)
-                          .map((t) => [t!.id, t!]),
-                      ).values(),
-                    ).map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name} ({t.role})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
           </div>
         </CardHeader>
         <CardContent>
           {/* Statistics Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div
-              onClick={() =>
-                setFilterStatus(filterStatus === "pending" ? "all" : "pending")
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "pending" ? "bg-yellow-100 border-yellow-400 shadow-sm ring-2 ring-yellow-400/50" : "bg-yellow-50 border-yellow-200"}`}
-            >
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="text-sm text-yellow-700 font-medium">
-                  Pending
-                </span>
+                <span className="text-sm text-yellow-700">Pending</span>
               </div>
               <p className="text-2xl font-bold text-yellow-600 mt-2">
                 {visits.filter((v) => v.status === "pending").length}
               </p>
             </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(filterStatus === "waiting" ? "all" : "waiting")
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "waiting" ? "bg-amber-100 border-amber-400 shadow-sm ring-2 ring-amber-400/50" : "bg-amber-50 border-amber-200"}`}
-            >
-              <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4 text-amber-600" />
-                <span className="text-sm text-amber-700 font-medium">
-                  Menunggu
-                </span>
-              </div>
-              <p className="text-2xl font-bold text-amber-600 mt-2">
-                {visits.filter((v) => v.status === "waiting").length}
-              </p>
-            </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(
-                  filterStatus === "awaiting_student"
-                    ? "all"
-                    : "awaiting_student",
-                )
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "awaiting_student" ? "bg-orange-100 border-orange-400 shadow-sm ring-2 ring-orange-400/50" : "bg-orange-50 border-orange-200"}`}
-            >
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <span className="text-sm text-orange-700 font-medium">
-                  Menunggu Siswa
-                </span>
-              </div>
-              <p className="text-2xl font-bold text-orange-600 mt-2">
-                {visits.filter((v) => v.status === "awaiting_student").length}
-              </p>
-            </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(
-                  filterStatus === "pending_delegation"
-                    ? "all"
-                    : "pending_delegation",
-                )
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "pending_delegation" ? "bg-purple-100 border-purple-400 shadow-sm ring-2 ring-purple-400/50" : "bg-purple-50 border-purple-200"}`}
-            >
-              <div className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4 text-purple-600" />
-                <span className="text-sm text-purple-700 font-medium">
-                  Menunggu Guru
-                </span>
-              </div>
-              <p className="text-2xl font-bold text-purple-600 mt-2">
-                {visits.filter((v) => v.status === "pending_delegation").length}
-              </p>
-            </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(
-                  filterStatus === "pending_time_negotiation"
-                    ? "all"
-                    : "pending_time_negotiation",
-                )
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "pending_time_negotiation" ? "bg-cyan-100 border-cyan-400 shadow-sm ring-2 ring-cyan-400/50" : "bg-cyan-50 border-cyan-200"}`}
-            >
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-cyan-600" />
-                <span className="text-sm text-cyan-700 font-medium">
-                  Negosiasi Waktu
-                </span>
-              </div>
-              <p className="text-2xl font-bold text-cyan-600 mt-2">
-                {
-                  visits.filter((v) => v.status === "pending_time_negotiation")
-                    .length
-                }
-              </p>
-            </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(
-                  filterStatus === "forwarded" ? "all" : "forwarded",
-                )
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "forwarded" ? "bg-blue-100 border-blue-400 shadow-sm ring-2 ring-blue-400/50" : "bg-blue-50 border-blue-200"}`}
-            >
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2">
                 <Forward className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-700 font-medium">
-                  Diserahkan
-                </span>
+                <span className="text-sm text-blue-700">Diserahkan</span>
               </div>
               <p className="text-2xl font-bold text-blue-600 mt-2">
                 {visits.filter((v) => v.status === "forwarded").length}
               </p>
             </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(
-                  filterStatus === "approved" ? "all" : "approved",
-                )
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "approved" ? "bg-indigo-100 border-indigo-400 shadow-sm ring-2 ring-indigo-400/50" : "bg-indigo-50 border-indigo-200"}`}
-            >
+            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-indigo-600" />
-                <span className="text-sm text-indigo-700 font-medium">
-                  Disetujui
-                </span>
+                <span className="text-sm text-indigo-700">Disetujui</span>
               </div>
               <p className="text-2xl font-bold text-indigo-600 mt-2">
                 {visits.filter((v) => v.status === "approved").length}
               </p>
             </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(
-                  filterStatus === "completed" ? "all" : "completed",
-                )
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "completed" ? "bg-green-100 border-green-400 shadow-sm ring-2 ring-green-400/50" : "bg-green-50 border-green-200"}`}
-            >
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm text-green-700 font-medium">
-                  Selesai
-                </span>
+                <span className="text-sm text-green-700">Selesai</span>
               </div>
               <p className="text-2xl font-bold text-green-600 mt-2">
                 {visits.filter((v) => v.status === "completed").length}
               </p>
             </div>
-
-            <div
-              onClick={() =>
-                setFilterStatus(
-                  filterStatus === "cancelled" ? "all" : "cancelled",
-                )
-              }
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${filterStatus === "cancelled" ? "bg-red-100 border-red-400 shadow-sm ring-2 ring-red-400/50" : "bg-red-50 border-red-200"}`}
-            >
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
               <div className="flex items-center gap-2">
                 <XCircle className="h-4 w-4 text-red-600" />
-                <span className="text-sm text-red-700 font-medium">
-                  Dibatalkan
-                </span>
+                <span className="text-sm text-red-700">Dibatalkan</span>
               </div>
               <p className="text-2xl font-bold text-red-600 mt-2">
                 {visits.filter((v) => v.status === "cancelled").length}
               </p>
             </div>
           </div>
-
-          {/* NEW: Delegation Requests Panel */}
-          {(() => {
-            const delegationRequests = visits.filter(
-              (v) =>
-                v.status === "pending_delegation" &&
-                v.assignedAdminId === adminData?.id,
-            );
-            if (delegationRequests.length > 0)
-              return (
-                <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                  <h3 className="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                    <Inbox className="h-5 w-5" />
-                    Permintaan Delegasi Masuk ({delegationRequests.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {delegationRequests.map((v) => (
-                      <div
-                        key={v.id}
-                        className="flex items-center justify-between bg-white p-4 rounded-lg border"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">
-                              {v.studentName}
-                            </span>
-                            <span className="text-slate-500 text-sm">
-                              ({v.class})
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {v.reason.substring(0, 80)}
-                            {v.reason.length > 80 ? "..." : ""}
-                          </p>
-                          <p className="text-xs text-slate-400 mt-1">
-                            📅 {v.visitDate} | ⏰ {v.visitTime} WIB
-                            {v.delegationStep
-                              ? ` | Delegasi ke-${v.delegationStep}`
-                              : ""}
-                          </p>
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                          <Button
-                            size="sm"
-                            onClick={() => handleTeacherApprove(v)}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Terima
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleTeacherReject(v)}
-                          >
-                            <XCircle className="h-4 w-4 mr-1" />
-                            Tolak
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            return null;
-          })()}
-
-          {/* Time Negotiation Requests Panel */}
-          {(() => {
-            const timeNegRequests = visits.filter(
-              (v) =>
-                v.status === "pending_time_negotiation" &&
-                v.targetTeacherId === adminData?.id,
-            );
-            if (timeNegRequests.length > 0)
-              return (
-                <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Permintaan Negosiasi Waktu ({timeNegRequests.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {timeNegRequests.map((v) => (
-                      <div
-                        key={v.id}
-                        className="flex items-center justify-between bg-white p-4 rounded-lg border"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">
-                              {v.studentName}
-                            </span>
-                            <span className="text-slate-500 text-sm">
-                              ({v.class})
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {v.reason.substring(0, 80)}
-                            {v.reason.length > 80 ? "..." : ""}
-                          </p>
-                          <p className="text-xs text-slate-400 mt-1">
-                            📅 Jadwal awal: {v.visitDate} | ⏰ {v.visitTime} WIB
-                          </p>
-                          <p className="text-xs text-purple-600 mt-1 font-medium">
-                            🕐 Usulan baru: {v.proposedVisitDate} | ⏰{" "}
-                            {v.proposedVisitTime} WIB
-                            {v.timeNegotiationStep
-                              ? ` (Negosiasi ke-${v.timeNegotiationStep})`
-                              : ""}
-                          </p>
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                          <Button
-                            size="sm"
-                            onClick={() => handleApproveTimeNegotiation(v)}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Setujui Waktu
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleRejectTimeNegotiation(v)}
-                          >
-                            <XCircle className="h-4 w-4 mr-1" />
-                            Tolak
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            return null;
-          })()}
 
           {/* Coordinator: Forwarded Visits Panel */}
           {isCoordinator &&
@@ -1550,11 +948,6 @@ export function VisitManagement({
                   <TableHead className="font-semibold">Nama Murid</TableHead>
                   <TableHead className="font-semibold">Kelas</TableHead>
                   <TableHead className="font-semibold">Guru BK</TableHead>
-                  {adminData?.role === "SUPER_ADMIN" && (
-                    <TableHead className="font-semibold">
-                      Guru BK Penanggung Jawab
-                    </TableHead>
-                  )}
                   <TableHead className="font-semibold">Tanggal</TableHead>
                   <TableHead className="font-semibold">Waktu</TableHead>
                   <TableHead className="font-semibold">Keperluan</TableHead>
@@ -1595,19 +988,7 @@ export function VisitManagement({
                       <TableCell>
                         {visit.targetTeacher ? (
                           <div className="flex flex-col gap-1">
-                            <span
-                              className={`text-sm ${adminData?.role === "SUPER_ADMIN" ? "cursor-pointer hover:underline text-blue-600 font-medium" : ""}`}
-                              onClick={() => {
-                                if (adminData?.role === "SUPER_ADMIN") {
-                                  setFilterTeacherId(visit.targetTeacher!.id);
-                                }
-                              }}
-                              title={
-                                adminData?.role === "SUPER_ADMIN"
-                                  ? "Klik untuk melihat laporan laporan dari guru ini"
-                                  : undefined
-                              }
-                            >
+                            <span className="text-sm">
                               {visit.targetTeacher.name}
                             </span>
                             {renderDelegationInfo(visit)}
@@ -1616,44 +997,6 @@ export function VisitManagement({
                           <span className="text-sm text-slate-400">-</span>
                         )}
                       </TableCell>
-                      {adminData?.role === "SUPER_ADMIN" && (
-                        <TableCell>
-                          {/* Guru BK Penanggung Jawab: prioritas assignedAdmin > delegatedToTeacher > targetTeacher */}
-                          {visit.assignedAdmin ? (
-                            <span
-                              className="text-sm font-semibold text-indigo-700 cursor-pointer hover:underline"
-                              onClick={() =>
-                                setFilterTeacherId(visit.assignedAdmin!.id)
-                              }
-                              title="Klik untuk melihat semua laporan dari guru ini"
-                            >
-                              {visit.assignedAdmin.name}
-                            </span>
-                          ) : visit.delegatedToTeacher ? (
-                            <span
-                              className="text-sm font-semibold text-amber-700 cursor-pointer hover:underline"
-                              onClick={() =>
-                                setFilterTeacherId(visit.delegatedToTeacher!.id)
-                              }
-                              title="Klik untuk melihat semua laporan dari guru ini"
-                            >
-                              {visit.delegatedToTeacher.name}
-                            </span>
-                          ) : visit.targetTeacher ? (
-                            <span
-                              className="text-sm font-semibold text-blue-700 cursor-pointer hover:underline"
-                              onClick={() =>
-                                setFilterTeacherId(visit.targetTeacher!.id)
-                              }
-                              title="Klik untuk melihat semua laporan dari guru ini"
-                            >
-                              {visit.targetTeacher.name}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-slate-400">-</span>
-                          )}
-                        </TableCell>
-                      )}
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="h-4 w-4 text-slate-400" />
@@ -1854,62 +1197,29 @@ export function VisitManagement({
                   <Label className="text-lg font-semibold text-slate-800">
                     Timeline Catatan Pertemuan
                   </Label>
-                  <Badge
-                    variant={
-                      selectedVisit.status === "completed"
-                        ? "default"
-                        : "secondary"
-                    }
-                  >
-                    {selectedVisit.status === "completed"
-                      ? "Selesai"
-                      : "Sedang Berlangsung"}
+                  <Badge variant={selectedVisit.status === "completed" ? "default" : "secondary"}>
+                    {selectedVisit.status === "completed" ? "Selesai" : "Sedang Berlangsung"}
                   </Badge>
                 </div>
-
+                
                 {/* Timeline Notes */}
-                {selectedVisit.visitNotesTimeline &&
-                selectedVisit.visitNotesTimeline.length > 0 ? (
+                {selectedVisit.visitNotesTimeline && selectedVisit.visitNotesTimeline.length > 0 ? (
                   <div className="space-y-4 pl-4 border-l-2 border-slate-200">
                     {selectedVisit.visitNotesTimeline.map((note, idx) => (
                       <div key={note.id || idx} className="relative">
-                        <div
-                          className={`absolute -left-[25px] mt-1 h-3 w-3 rounded-full border-2 ${note.isSolved ? "bg-green-500 border-green-500" : "bg-white border-slate-400"}`}
-                        ></div>
+                        <div className={`absolute -left-[25px] mt-1 h-3 w-3 rounded-full border-2 ${note.isSolved ? 'bg-green-500 border-green-500' : 'bg-white border-slate-400'}`}></div>
                         <div className="bg-slate-50 border p-3 rounded-lg mb-2">
                           <div className="flex justify-between items-start mb-2">
-                            <span className="font-semibold text-sm">
-                              Pertemuan {idx + 1}
-                            </span>
+                            <span className="font-semibold text-sm">Pertemuan {idx + 1}</span>
                             <span className="text-xs text-slate-500">
-                              {new Date(note.createdAt).toLocaleString(
-                                "id-ID",
-                                {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                },
-                              )}
+                              {new Date(note.createdAt).toLocaleString("id-ID", {
+                                day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+                              })}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-700 whitespace-pre-wrap">
-                            {note.note}
-                          </p>
+                          <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.note}</p>
                           <div className="mt-2 text-xs font-medium">
-                            Status:{" "}
-                            <span
-                              className={
-                                note.isSolved
-                                  ? "text-green-600"
-                                  : "text-amber-600"
-                              }
-                            >
-                              {note.isSolved
-                                ? "Masalah Selesai (Solved)"
-                                : "Belum Selesai"}
-                            </span>
+                            Status: <span className={note.isSolved ? "text-green-600" : "text-amber-600"}>{note.isSolved ? "Masalah Selesai (Solved)" : "Belum Selesai"}</span>
                           </div>
                         </div>
                       </div>
@@ -1920,16 +1230,11 @@ export function VisitManagement({
                     Belum ada catatan pertemuan untuk kunjungan ini.
                   </div>
                 )}
-
+                
                 {/* Add new note form */}
                 {selectedVisit.status !== "completed" && (
                   <div className="mt-6 space-y-3 bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                    <Label
-                      htmlFor="newNote"
-                      className="font-semibold text-slate-800"
-                    >
-                      Tambah Catatan Pertemuan Baru
-                    </Label>
+                    <Label htmlFor="newNote" className="font-semibold text-slate-800">Tambah Catatan Pertemuan Baru</Label>
                     <Textarea
                       id="newNote"
                       placeholder="Ketik catatan pertemuan kali ini..."
@@ -1939,17 +1244,14 @@ export function VisitManagement({
                       className="bg-slate-50"
                     />
                     <div className="flex items-center space-x-2 mt-2">
-                      <input
-                        type="checkbox"
-                        id="isSolved"
+                      <input 
+                        type="checkbox" 
+                        id="isSolved" 
                         checked={isMeetingSolved}
                         onChange={(e) => setIsMeetingSolved(e.target.checked)}
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                       />
-                      <Label
-                        htmlFor="isSolved"
-                        className="text-sm font-medium cursor-pointer"
-                      >
+                      <Label htmlFor="isSolved" className="text-sm font-medium cursor-pointer">
                         Tandai masalah telah selesai (Solved)
                       </Label>
                     </div>
@@ -1978,10 +1280,7 @@ export function VisitManagement({
               Tutup
             </Button>
             {selectedVisit?.status !== "completed" && (
-              <Button
-                onClick={handleAddMeetingNote}
-                disabled={isAddingNote || !newMeetingNote.trim()}
-              >
+              <Button onClick={handleAddMeetingNote} disabled={isAddingNote || !newMeetingNote.trim()}>
                 {isAddingNote ? "Menyimpan..." : "Simpan Catatan Baru"}
               </Button>
             )}
@@ -2187,54 +1486,85 @@ export function VisitManagement({
         </DialogContent>
       </Dialog>
 
-      {/* Wait Duration Dialog */}
-      <Dialog
-        open={isWaitDialogOpen}
-        onOpenChange={(open) => {
-          setIsWaitDialogOpen(open);
-          if (!open) {
-            setVisitToWait(null);
-            setWaitDuration("15");
-          }
-        }}
-      >
-        <DialogContent className="max-w-sm">
+      {/* Dialog Serahkan ke Koordinator */}
+      <Dialog open={isForwardDialogOpen} onOpenChange={setIsForwardDialogOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-700">
-              <Timer className="h-5 w-5" />
-              Minta Siswa Menunggu
+            <DialogTitle className="flex items-center gap-2 text-blue-600">
+              <Forward className="h-5 w-5" />
+              Serahkan ke Koordinator
             </DialogTitle>
             <DialogDescription>
-              Tentukan berapa lama siswa harus menunggu. Jika waktu habis,
-              kunjungan akan otomatis dibatalkan.
+              Kunjungan ini akan diserahkan ke koordinator untuk didelegasikan
+              ke guru BK lain. Koordinator akan memilih guru pengganti yang
+              sesuai.
             </DialogDescription>
           </DialogHeader>
-          {visitToWait && (
-            <div className="py-4 space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-                <p>
-                  <strong>Siswa:</strong> {visitToWait.studentName} (
-                  {visitToWait.class})
-                </p>
-                <p>
-                  <strong>Jadwal:</strong> {visitToWait.visitDate} |{" "}
-                  {visitToWait.visitTime} WIB
-                </p>
+          {visitToForward && (
+            <div className="space-y-4 py-4">
+              {/* Visit summary */}
+              <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Murid:</span>
+                  <span className="font-medium">
+                    {visitToForward.studentName}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Kelas:</span>
+                  <span className="font-medium">{visitToForward.class}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Tanggal:</span>
+                  <span className="font-medium">
+                    {new Date(visitToForward.visitDate).toLocaleDateString(
+                      "id-ID",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      },
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Keperluan:</span>
+                  <span className="font-medium text-right max-w-[200px] truncate">
+                    {visitToForward.reason}
+                  </span>
+                </div>
               </div>
+
+              {/* Forward reason */}
               <div className="space-y-2">
-                <Label htmlFor="waitDuration">Durasi Tunggu (menit)</Label>
-                <Input
-                  id="waitDuration"
-                  type="number"
-                  min="1"
-                  max="120"
-                  value={waitDuration}
-                  onChange={(e) => setWaitDuration(e.target.value)}
-                  placeholder="15"
+                <Label htmlFor="forwardReason">
+                  Alasan Penyerahan (opsional)
+                </Label>
+                <Textarea
+                  id="forwardReason"
+                  placeholder="Jelaskan alasan mengapa kunjungan ini perlu diserahkan ke koordinator, misalnya: tidak sesuai bidang keahlian, jadwal bentrok, dll."
+                  value={forwardReason}
+                  onChange={(e) => setForwardReason(e.target.value)}
+                  rows={3}
                 />
-                <p className="text-xs text-slate-500">
-                  Contoh: 15 menit, 30 menit, dst.
-                </p>
+              </div>
+
+              {/* Info box */}
+              <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <AlertTriangle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-800">
+                  <p className="font-medium mb-1">
+                    Apa yang terjadi selanjutnya?
+                  </p>
+                  <ul className="list-disc list-inside space-y-0.5">
+                    <li>Koordinator akan menerima laporan ini</li>
+                    <li>Koordinator akan mendelegasikan ke guru BK lain</li>
+                    <li>
+                      Guru yang ditunjuk harus menyetujui sebelum kunjungan
+                      dilanjutkan
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           )}
@@ -2242,20 +1572,29 @@ export function VisitManagement({
             <Button
               variant="outline"
               onClick={() => {
-                setIsWaitDialogOpen(false);
-                setVisitToWait(null);
-                setWaitDuration("15");
+                setIsForwardDialogOpen(false);
+                setVisitToForward(null);
               }}
+              disabled={isForwarding}
             >
               Batal
             </Button>
             <Button
-              onClick={handleWaitVisit}
-              disabled={!waitDuration || parseInt(waitDuration) < 1}
-              className="bg-amber-600 hover:bg-amber-700"
+              onClick={handleForwardToCoordinator}
+              disabled={isForwarding}
+              className="gap-2 bg-blue-600 hover:bg-blue-700"
             >
-              <Timer className="h-4 w-4 mr-2" />
-              Kirim
+              {isForwarding ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Menyerahkan...
+                </>
+              ) : (
+                <>
+                  <Forward className="h-4 w-4" />
+                  Serahkan ke Koordinator
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
