@@ -18,7 +18,7 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            class: true,
+            classId: true,
           },
         },
       },
@@ -27,14 +27,31 @@ export async function GET(
       },
     });
 
+    const classIds = Array.from(
+      new Set(
+        comments
+          .map((comment) => comment.student?.classId)
+          .filter((classId): classId is string => Boolean(classId))
+      )
+    );
+
+    const classes = classIds.length
+      ? await prisma.class.findMany({
+          where: { id: { in: classIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+
+    const classNameById = new Map(classes.map((cls) => [cls.id, cls.name]));
+
     // Map class object to string for frontend compatibility
     const mappedComments = comments.map((comment) => ({
       ...comment,
       student: comment.student ? {
         ...comment.student,
-        class: typeof comment.student.class === 'object' && comment.student.class !== null
-          ? (comment.student.class as any).name
-          : comment.student.class || "Tidak ada kelas",
+        class: comment.student.classId
+          ? classNameById.get(comment.student.classId) || "Tidak ada kelas"
+          : "Tidak ada kelas",
       } : null,
     }));
 
@@ -100,20 +117,25 @@ export async function POST(
           select: {
             id: true,
             name: true,
-            class: true,
+            classId: true,
           },
         } : false,
       },
     });
+
+    const studentClassName = comment.student?.classId
+      ? (await prisma.class.findUnique({
+          where: { id: comment.student.classId },
+          select: { name: true },
+        }))?.name || "Tidak ada kelas"
+      : "Tidak ada kelas";
 
     // Map class object to string for frontend compatibility
     const mappedComment = {
       ...comment,
       student: comment.student ? {
         ...comment.student,
-        class: typeof comment.student.class === 'object' && comment.student.class !== null
-          ? (comment.student.class as any).name
-          : comment.student.class || "Tidak ada kelas",
+        class: studentClassName,
       } : null,
     };
 

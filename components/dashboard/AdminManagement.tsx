@@ -263,6 +263,7 @@ export function AdminManagement({
         officeLocation: "",
         officeHours: "",
         socialLinks: "",
+        assignedClasses: [],
       });
       loadAdmins();
     } catch (error: any) {
@@ -338,6 +339,7 @@ export function AdminManagement({
         officeLocation: "",
         officeHours: "",
         socialLinks: "",
+        assignedClasses: [],
       });
       loadAdmins();
     } catch (error: any) {
