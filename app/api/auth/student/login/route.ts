@@ -49,12 +49,15 @@ export async function POST(request: Request) {
       class: student.class?.name || "",
     });
 
-    const { password: _password, ...studentData } = student;
+    const { password: _password, class: classObj, ...studentRest } = student;
 
     const res = NextResponse.json({
       success: true,
       message: "Login berhasil",
-      student: studentData,
+      student: {
+        ...studentRest,
+        class: classObj?.name || "Tidak ada kelas",
+      },
       token,
     });
 

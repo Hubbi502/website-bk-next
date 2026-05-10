@@ -136,7 +136,9 @@ export function VisitManagement({
           (v.studentName || "")
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          (v.class || "").toLowerCase().includes(searchQuery.toLowerCase()),
+          (typeof v.class === 'object' ? (v.class as any).name : v.class || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -789,7 +791,7 @@ export function VisitManagement({
                                 {v.studentName}
                               </span>
                               <span className="text-slate-500 text-sm ml-2">
-                                ({v.class})
+                                ({typeof v.class === 'object' ? (v.class as any).name : v.class})
                               </span>
                               <span className="text-slate-400 text-xs ml-2">
                                 — {v.reason.substring(0, 60)}
@@ -834,7 +836,7 @@ export function VisitManagement({
                                 {v.studentName}
                               </span>
                               <span className="text-slate-500 text-sm ml-2">
-                                ({v.class})
+                                ({typeof v.class === 'object' ? (v.class as any).name : v.class})
                               </span>
                               {v.delegatedToTeacher && (
                                 <Badge
@@ -882,7 +884,7 @@ export function VisitManagement({
                               {v.studentName}
                             </span>
                             <span className="text-slate-500 text-sm ml-2">
-                              ({v.class})
+                              ({typeof v.class === 'object' ? (v.class as any).name : v.class})
                             </span>
                             <p className="text-xs text-slate-500 mt-1">
                               {v.reason.substring(0, 80)}
@@ -983,7 +985,7 @@ export function VisitManagement({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{visit.class}</Badge>
+                        <Badge variant="outline">{typeof visit.class === 'object' ? (visit.class as any).name : visit.class}</Badge>
                       </TableCell>
                       <TableCell>
                         {visit.targetTeacher ? (

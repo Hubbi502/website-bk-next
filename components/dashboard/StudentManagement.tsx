@@ -272,7 +272,7 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
             name: student.name,
             nisn: student.nisn,
             password: "",
-            class: student.class,
+            class: typeof student.class === 'object' ? (student.class as any).name : student.class,
             phone: student.phone || "",
         });
         setIsEditDialogOpen(true);
@@ -411,7 +411,7 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
                         </TableCell>
                         <TableCell>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                            {student.class}
+                            {typeof student.class === 'object' ? (student.class as any).name : student.class}
                           </span>
                         </TableCell>
                         <TableCell className="text-slate-600 hidden md:table-cell">

@@ -46,7 +46,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: student,
+      data: {
+        ...student,
+        class: typeof student.class === 'object' && student.class !== null
+          ? (student.class as any).name
+          : student.class || "Tidak ada kelas",
+      },
     });
   } catch (error) {
     console.error("Error fetching student:", error);

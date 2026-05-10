@@ -31,20 +31,31 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Lookup classId from class name if provided
+    let classId: string | undefined;
+    if (studentClass) {
+      const classRecord = await prisma.class.findUnique({
+        where: { name: studentClass },
+      });
+      if (classRecord) {
+        classId = classRecord.id;
+      }
+    }
+
     // Create student
     const student = await prisma.student.create({
       data: {
         name,
         nisn,
         password: hashedPassword,
-        class: studentClass || "-",
+        ...(classId ? { classId } : {}),
         phone: phone || null,
       },
       select: {
         id: true,
         name: true,
         nisn: true,
-        class: true,
+        class: { select: { name: true } },
         phone: true,
         createdAt: true,
       },
@@ -54,7 +65,10 @@ export async function POST(request: Request) {
       { 
         success: true, 
         message: "Registrasi berhasil",
-        student: student 
+        student: {
+          ...student,
+          class: student.class?.name || "Tidak ada kelas",
+        },
       },
       { status: 201 }
     );

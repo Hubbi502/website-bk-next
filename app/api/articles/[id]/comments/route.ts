@@ -27,7 +27,18 @@ export async function GET(
       },
     });
 
-    return NextResponse.json(comments);
+    // Map class object to string for frontend compatibility
+    const mappedComments = comments.map((comment) => ({
+      ...comment,
+      student: comment.student ? {
+        ...comment.student,
+        class: typeof comment.student.class === 'object' && comment.student.class !== null
+          ? (comment.student.class as any).name
+          : comment.student.class || "Tidak ada kelas",
+      } : null,
+    }));
+
+    return NextResponse.json(mappedComments);
   } catch (error) {
     console.error("Error fetching comments:", error);
     return NextResponse.json(
@@ -95,7 +106,18 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(comment, { status: 201 });
+    // Map class object to string for frontend compatibility
+    const mappedComment = {
+      ...comment,
+      student: comment.student ? {
+        ...comment.student,
+        class: typeof comment.student.class === 'object' && comment.student.class !== null
+          ? (comment.student.class as any).name
+          : comment.student.class || "Tidak ada kelas",
+      } : null,
+    };
+
+    return NextResponse.json(mappedComment, { status: 201 });
   } catch (error) {
     console.error("Error creating comment:", error);
     return NextResponse.json(

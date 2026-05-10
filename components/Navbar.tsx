@@ -30,7 +30,13 @@ const Navbar = () => {
       setIsLoggedIn(!!adminData);
       setIsStudentLoggedIn(!!studentDataLocal);
       if (studentDataLocal) {
-        setStudentData(JSON.parse(studentDataLocal));
+        const parsed = JSON.parse(studentDataLocal);
+        // Normalize class to string (may be object from old API response)
+        if (parsed.class && typeof parsed.class === 'object') {
+          parsed.class = parsed.class.name || "Tidak ada kelas";
+          localStorage.setItem("studentData", JSON.stringify(parsed));
+        }
+        setStudentData(parsed);
       }
     };
     
@@ -138,7 +144,7 @@ const Navbar = () => {
                     <div className="flex flex-col">
                       <span>{studentData?.name}</span>
                       <span className="text-xs font-normal text-gray-500">NISN: {studentData?.nisn}</span>
-                      <span className="text-xs font-normal text-gray-500">{studentData?.class}</span>
+                      <span className="text-xs font-normal text-gray-500">{typeof studentData?.class === 'object' ? studentData?.class?.name : studentData?.class}</span>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-gray-200 mb-2" />
@@ -231,7 +237,7 @@ const Navbar = () => {
                     <div className="flex flex-col">
                       <span>{studentData?.name}</span>
                       <span className="text-xs font-normal text-gray-500">NISN: {studentData?.nisn}</span>
-                      <span className="text-xs font-normal text-gray-500">{studentData?.class}</span>
+                      <span className="text-xs font-normal text-gray-500">{typeof studentData?.class === 'object' ? studentData?.class?.name : studentData?.class}</span>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-gray-200 mb-2" />

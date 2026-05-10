@@ -186,6 +186,11 @@ const Schedule = () => {
     const savedStudent = localStorage.getItem("studentData");
     if (savedStudent) {
       const data = JSON.parse(savedStudent);
+      // Normalize class to string (may be object from old API response)
+      if (data.class && typeof data.class === 'object') {
+        data.class = data.class.name || "Tidak ada kelas";
+        localStorage.setItem("studentData", JSON.stringify(data));
+      }
       setStudentData(data);
     }
   }, []);
