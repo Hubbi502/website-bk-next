@@ -41,6 +41,7 @@ export async function GET(
             role: true,
           },
         },
+        class: true,
         visitNotesTimeline: {
           orderBy: {
             createdAt: 'asc',
@@ -62,7 +63,7 @@ export async function GET(
     const formattedVisit = {
       id: visit.id,
       studentName: visit.studentName,
-      class: visit.class,
+      class: visit.class?.name || "Tidak ada kelas",
       email: visit.email,
       phone: visit.phone,
       visitDate: visit.visitDate.toISOString().split("T")[0],
@@ -253,6 +254,7 @@ export async function PUT(
             role: true,
           },
         },
+        class: true,
       },
     });
 
@@ -267,7 +269,7 @@ export async function PUT(
     const formattedVisit = {
       id: updatedVisit.id,
       studentName: updatedVisit.studentName,
-      class: updatedVisit.class,
+      class: updatedVisit.class?.name || "Tidak ada kelas",
       email: updatedVisit.email,
       phone: updatedVisit.phone,
       visitDate: updatedVisit.visitDate.toISOString().split("T")[0],

@@ -29,6 +29,8 @@ import { ArticleManagement } from "@/components/dashboard/ArticleManagement";
 import { VisitManagement } from "@/components/dashboard/VisitManagement";
 import { AdminManagement } from "@/components/dashboard/AdminManagement";
 import { StudentManagement } from "@/components/dashboard/StudentManagement";
+import { MajorManagement } from "@/components/dashboard/MajorManagement";
+import { ClassManagement } from "@/components/dashboard/ClassManagement";
 import { isSuperAdmin } from "@/lib/permissions";
 
 interface Article {
@@ -50,7 +52,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [adminData, setAdminData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "articles" | "visits" | "admins" | "students"
+    "overview" | "articles" | "visits" | "admins" | "students" | "majors" | "classes"
   >("overview");
   const [articles, setArticles] = useState<Article[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
@@ -231,6 +233,8 @@ const Dashboard = () => {
           {activeTab === "visits" && <VisitsSkeleton />}
           {activeTab === "admins" && <AdminsSkeleton />}
           {activeTab === "students" && <AdminsSkeleton />}
+          {activeTab === "majors" && <AdminsSkeleton />}
+          {activeTab === "classes" && <AdminsSkeleton />}
         </div>
       </main>
     </div>
@@ -406,6 +410,8 @@ const Dashboard = () => {
     { id: "articles", label: "Kelola Artikel" },
     { id: "visits", label: "Kunjungan Murid" },
     { id: "students", label: "Kelola Siswa" },
+    { id: "majors", label: "Kelola Jurusan" },
+    { id: "classes", label: "Kelola Kelas" },
   ];
 
   const currentPageTitle =
@@ -460,6 +466,14 @@ const Dashboard = () => {
 
       {activeTab === "students" && (
         <StudentManagement adminData={adminData} />
+      )}
+
+      {activeTab === "majors" && isSuperAdmin(adminData) && (
+        <MajorManagement />
+      )}
+
+      {activeTab === "classes" && isSuperAdmin(adminData) && (
+        <ClassManagement />
       )}
     </DashboardLayout>
   );

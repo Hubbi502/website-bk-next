@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     // Find student
     const student = await prisma.student.findUnique({
       where: { nisn },
+      include: { class: true }
     });
 
     if (!student) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       id: student.id,
       nisn: student.nisn,
       name: student.name,
-      class: student.class,
+      class: student.class?.name || "",
     });
 
     const { password: _password, ...studentData } = student;

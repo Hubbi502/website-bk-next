@@ -24,9 +24,9 @@ export async function GET(request: NextRequest) {
         const students = await prisma.student.findMany({
             where: {
                 // Filter by allowed classes (only for Guru BK)
-                ...(allowedClasses ? { class: { in: allowedClasses } } : {}),
+                ...(allowedClasses ? { class: { name: { in: allowedClasses } } } : {}),
                 // Optional class filter
-                ...(classFilter ? { class: classFilter } : {}),
+                ...(classFilter ? { class: { name: classFilter } } : {}),
                 // Search by name or NISN
                 ...(search
                     ? {
@@ -41,15 +41,21 @@ export async function GET(request: NextRequest) {
                 id: true,
                 name: true,
                 nisn: true,
-                class: true,
+                class: { select: { name: true } },
                 phone: true,
                 createdAt: true,
                 updatedAt: true,
             },
-            orderBy: [{ class: "asc" }, { name: "asc" }],
+            orderBy: [{ classId: "asc" }, { name: "asc" }],
         });
 
-        return NextResponse.json({ success: true, data: students }, { status: 200 });
+        // Map class object back to string for frontend compatibility
+        const mappedStudents = students.map(s => ({
+            ...s,
+            class: s.class?.name || "Tidak ada kelas"
+        }));
+
+        return NextResponse.json({ success: true, data: mappedStudents }, { status: 200 });
     } catch (error) {
         console.error("Get students error:", error);
         return NextResponse.json(
@@ -103,26 +109,33 @@ export async function POST(request: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        const classRecord = await prisma.class.findUnique({ where: { name: className } });
+        if (!classRecord) {
+            return NextResponse.json({ error: "Kelas tidak ditemukan" }, { status: 400 });
+        }
+
         const student = await prisma.student.create({
             data: {
                 name,
                 nisn,
                 password: hashedPassword,
-                class: className,
+                classId: classRecord.id,
                 phone: phone || null,
             },
             select: {
                 id: true,
                 name: true,
                 nisn: true,
-                class: true,
+                class: { select: { name: true } },
                 phone: true,
                 createdAt: true,
             },
         });
 
+        const mappedStudent = { ...student, class: student.class?.name || "Tidak ada kelas" };
+
         return NextResponse.json(
-            { success: true, message: "Siswa berhasil ditambahkan", data: student },
+            { success: true, message: "Siswa berhasil ditambahkan", data: mappedStudent },
             { status: 201 }
         );
     } catch (error) {

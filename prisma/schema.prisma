@@ -53,13 +53,41 @@ model Admin {
   @@map("admins")
 }
 
+// Model untuk Jurusan
+model Major {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  classes   Class[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("majors")
+}
+
+// Model untuk Kelas
+model Class {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  majorId   String
+  major     Major     @relation(fields: [majorId], references: [id], onDelete: Cascade)
+  students  Student[]
+  visits    Visit[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([majorId])
+  @@map("classes")
+}
+
 // Model untuk Murid/Student
 model Student {
   id        String   @id @default(cuid())
   name      String
   nisn      String   @unique
   password  String // Should be hashed
-  class     String
+  classId   String?
+  class     Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
   phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -128,7 +156,8 @@ model Visit {
   student                Student?          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   // Fields untuk anonymous visits (jika tidak login)
   studentName            String?
-  class                  String?
+  classId                String?
+  class                  Class?            @relation(fields: [classId], references: [id], onDelete: SetNull)
   email                  String?
   phone                  String?
   // Fields untuk delegasi ke koordinator/guru lain (LEGACY)
@@ -157,6 +186,7 @@ model Visit {
 
   @@index([approvedBy])
   @@index([studentId])
+  @@index([classId])
   @@index([targetTeacherId])
   @@index([delegatedToTeacherId])
   @@index([assignedAdminId])

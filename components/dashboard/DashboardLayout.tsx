@@ -20,14 +20,15 @@ import {
   ShieldCheck,
   GraduationCap,
   UserCircle,
+  Library,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
   adminData: any;
-  activeTab: "overview" | "articles" | "visits" | "admins" | "students";
+  activeTab: "overview" | "articles" | "visits" | "admins" | "students" | "majors" | "classes";
   setActiveTab: (
-    tab: "overview" | "articles" | "visits" | "admins" | "students",
+    tab: "overview" | "articles" | "visits" | "admins" | "students" | "majors" | "classes",
   ) => void;
   articlesCount: number;
   pendingVisitsCount: number;
@@ -85,6 +86,8 @@ export function DashboardLayout({
   const menuItems = isSuperAdmin(adminData)
     ? [
         ...baseMenuItems,
+        { id: "majors", icon: Library, label: "Kelola Jurusan", badge: null },
+        { id: "classes", icon: Library, label: "Kelola Kelas", badge: null },
         { id: "admins", icon: ShieldCheck, label: "Kelola Admin", badge: null },
       ]
     : baseMenuItems;

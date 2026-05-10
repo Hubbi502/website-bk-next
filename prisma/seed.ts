@@ -18,15 +18,19 @@ const prisma = new PrismaClient({
 
 // ===== DATA KELAS =====
 const grades = ["X", "XI", "XII"];
-const majors = ["RPL", "DKV", "SIJA"];
+const majorsList = [
+  { name: "Rekayasa Perangkat Lunak", code: "RPL" },
+  { name: "Desain Komunikasi Visual", code: "DKV" },
+  { name: "Sistem Informatika, Jaringan, dan Aplikasi", code: "SIJA" }
+];
 const classNumbers = [1, 2];
 
 // Generate semua kelas: X RPL 1, X RPL 2, X DKV 1, ... XII SIJA 2
 const allClasses: string[] = [];
 for (const grade of grades) {
-  for (const major of majors) {
+  for (const major of majorsList) {
     for (const num of classNumbers) {
-      allClasses.push(`${grade} ${major} ${num}`);
+      allClasses.push(`${grade} ${major.code} ${num}`);
     }
   }
 }
@@ -79,6 +83,33 @@ async function main() {
   // Hash passwords
   const adminPassword = await bcrypt.hash("guru123", 10);
   const studentPassword = await bcrypt.hash("siswa123", 10);
+
+  // ===== CREATE MAJORS & CLASSES =====
+  console.log("\n🏫 Creating majors and classes...");
+  const createdMajors = [];
+  for (const major of majorsList) {
+    const m = await prisma.major.upsert({
+      where: { code: major.code },
+      update: {},
+      create: major,
+    });
+    createdMajors.push(m);
+  }
+
+  const createdClasses: Record<string, string> = {};
+  for (const grade of grades) {
+    for (const major of createdMajors) {
+      for (const num of classNumbers) {
+        const className = `${grade} ${major.code} ${num}`;
+        const c = await prisma.class.upsert({
+          where: { name: className },
+          update: {},
+          create: { name: className, majorId: major.id },
+        });
+        createdClasses[className] = c.id;
+      }
+    }
+  }
 
   // ===== CREATE ADMINS =====
   console.log("\n👤 Creating admins...");
@@ -173,7 +204,7 @@ async function main() {
           name: studentNames[studentIdx],
           nisn,
           password: studentPassword,
-          class: className,
+          classId: createdClasses[className],
           phone,
         },
       });
@@ -481,7 +512,7 @@ Guru BK siap membantumu dalam konsultasi perencanaan karir!`,
         reason: "Ingin curhat tentang masalah keluarga.",
         status: "PENDING",
         studentName: "Siswa Anonymous",
-        class: "XI DKV 1",
+        classId: createdClasses["XI DKV 1"],
         email: "anonymous@student.com",
         phone: "081234567899",
         targetTeacherId: admin3.id,
@@ -516,7 +547,8 @@ Guru BK siap membantumu dalam konsultasi perencanaan karir!`,
   
   console.log(`\n👨‍🎓 Students: ${students.length} total (5 per kelas × ${allClasses.length} kelas)`);
   for (const className of allClasses) {
-    const classStudents = students.filter(s => s.class === className);
+    const classId = createdClasses[className];
+    const classStudents = students.filter(s => s.classId === classId);
     console.log(`   📘 ${className}:`);
     classStudents.forEach(s => {
       console.log(`      - ${s.name} (NISN: ${s.nisn})`);

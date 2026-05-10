@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
             role: true,
           },
         },
+        class: true,
         visitNotesTimeline: {
           orderBy: {
             createdAt: 'asc',
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
     const formattedVisits = visits.map((visit) => ({
       id: visit.id,
       studentName: visit.studentName,
-      class: visit.class,
+      class: visit.class?.name || "Tidak ada kelas",
       email: visit.email,
       phone: visit.phone,
       visitDate: visit.visitDate.toISOString().split("T")[0],
@@ -192,13 +193,7 @@ export async function POST(request: NextRequest) {
     if (studentId) {
       studentData = await prisma.student.findUnique({
         where: { id: studentId },
-        select: {
-          id: true,
-          name: true,
-          nisn: true,
-          class: true,
-          phone: true,
-        },
+        include: { class: true },
       });
 
       if (!studentData) {
@@ -212,6 +207,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let classId = studentData?.classId || null;
+    if (!classId && studentClass) {
+       const cls = await prisma.class.findUnique({ where: { name: studentClass } });
+       if (cls) classId = cls.id;
+    }
+
     const visit = await prisma.visit.create({
       data: {
         visitDate: new Date(visitDate),
@@ -222,10 +223,11 @@ export async function POST(request: NextRequest) {
         targetTeacherId: targetTeacherId || null,
         // Always populate these fields - use student data if logged in, or form data if anonymous
         studentName: studentData ? studentData.name : studentName,
-        class: studentData ? studentData.class : studentClass,
+        classId: classId,
         email: studentData ? null : email,
         phone: studentData ? studentData.phone : phone,
       },
+      include: { class: true },
     });
 
     // Trigger Pusher event agar user lain tahu slot ini sudah terisi
@@ -243,7 +245,7 @@ export async function POST(request: NextRequest) {
       data: {
         id: visit.id,
         studentName: visit.studentName,
-        class: visit.class,
+        class: visit.class?.name || "Tidak ada kelas",
         email: visit.email,
         phone: visit.phone,
         visitDate: visit.visitDate.toISOString().split("T")[0],

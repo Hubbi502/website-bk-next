@@ -20,11 +20,11 @@ export async function PUT(
             });
             const student = await prisma.student.findUnique({
                 where: { id },
-                select: { class: true },
+                include: { class: true },
             });
 
             // Guru BK cannot edit students outside their assigned classes
-            if (student && !admin?.assignedClasses.includes(student.class)) {
+            if (student && student.class?.name && !admin?.assignedClasses.includes(student.class.name)) {
                 return NextResponse.json(
                     { error: "Akses ditolak" },
                     { status: 403 }
@@ -52,12 +52,21 @@ export async function PUT(
             }
         }
 
+        let classId: string | undefined = undefined;
+        if (className) {
+            const classRecord = await prisma.class.findUnique({ where: { name: className } });
+            if (!classRecord) {
+                return NextResponse.json({ error: "Kelas tidak ditemukan" }, { status: 400 });
+            }
+            classId = classRecord.id;
+        }
+
         const updateData: Record<string, unknown> = {
             name,
             nisn,
-            class: className,
             phone: phone || null,
         };
+        if (classId) updateData.classId = classId;
         if (password) {
             updateData.password = await bcrypt.hash(password, 10);
         }
@@ -69,7 +78,7 @@ export async function PUT(
                 id: true,
                 name: true,
                 nisn: true,
-                class: true,
+                class: { select: { name: true } },
                 phone: true,
                 createdAt: true,
                 updatedAt: true,
@@ -110,10 +119,10 @@ export async function DELETE(
             });
             const student = await prisma.student.findUnique({
                 where: { id },
-                select: { class: true },
+                include: { class: true },
             });
 
-            if (student && !admin?.assignedClasses.includes(student.class)) {
+            if (student && student.class?.name && !admin?.assignedClasses.includes(student.class.name)) {
                 return NextResponse.json(
                     { error: "Akses ditolak" },
                     { status: 403 }
