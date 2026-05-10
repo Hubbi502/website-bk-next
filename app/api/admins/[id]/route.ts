@@ -38,6 +38,7 @@ export async function GET(
         id: true,
         name: true,
         username: true,
+        assignedClasses: true,
         role: true,
         profileImageUrl: true,
         shortBio: true,
@@ -126,7 +127,8 @@ export async function PUT(
       emailPublic,
       officeLocation,
       officeHours,
-      socialLinks
+      socialLinks,
+      assignedClasses
     } = body;
 
     // Check if admin exists
@@ -179,6 +181,20 @@ export async function PUT(
     if (officeHours !== undefined) updateData.officeHours = officeHours;
     if (socialLinks !== undefined) {
       updateData.socialLinks = typeof socialLinks === 'string' ? socialLinks : (socialLinks ? JSON.stringify(socialLinks) : null);
+    }
+
+    // Validate and set assignedClasses if provided
+    if (assignedClasses !== undefined) {
+      if (!Array.isArray(assignedClasses) || assignedClasses.some(c => typeof c !== 'string')) {
+        return NextResponse.json({ error: "assignedClasses harus berupa array string" }, { status: 400 });
+      }
+      const found = await prisma.class.findMany({ where: { name: { in: assignedClasses as string[] } }, select: { name: true } });
+      const foundNames = found.map(f => f.name);
+      const missing = (assignedClasses as string[]).filter(c => !foundNames.includes(c));
+      if (missing.length > 0) {
+        return NextResponse.json({ error: `Beberapa kelas tidak ditemukan: ${missing.join(', ')}` }, { status: 400 });
+      }
+      updateData.assignedClasses = assignedClasses as string[];
     }
 
     // Update admin

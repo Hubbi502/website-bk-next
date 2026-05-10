@@ -81,19 +81,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Auto-cancel expired WAITING visits
+    // Auto-transition expired WAITING visits to AWAITING_STUDENT
+    // (so student can choose another teacher or propose a new time)
     const now = new Date();
     for (const visit of visits) {
       if (visit.status === "WAITING" && visit.waitExpiredAt && now > visit.waitExpiredAt) {
         await prisma.visit.update({
           where: { id: visit.id },
           data: {
-            status: "CANCELLED",
-            notes: "Dibatalkan otomatis: waktu tunggu habis.",
+            status: "AWAITING_STUDENT",
+            notes: "Waktu tunggu habis. Silakan pilih guru lain atau usulkan waktu baru.",
           },
         });
-        visit.status = "CANCELLED";
-        visit.notes = "Dibatalkan otomatis: waktu tunggu habis.";
+        visit.status = "AWAITING_STUDENT" as any;
+        visit.notes = "Waktu tunggu habis. Silakan pilih guru lain atau usulkan waktu baru.";
       }
     }
 

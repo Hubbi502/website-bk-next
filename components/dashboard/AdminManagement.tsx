@@ -48,6 +48,7 @@ interface Admin {
   name: string;
   username: string;
   role: "ADMIN" | "SUPER_ADMIN";
+  assignedClasses?: string[];
   createdAt: string;
   updatedAt: string;
   profileImageUrl?: string;
@@ -79,6 +80,10 @@ export function AdminManagement({
   const { toast } = useToast();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
+  const [availableClasses, setAvailableClasses] = useState<{ name: string }[]>(
+    [],
+  );
+  const [classesLoading, setClassesLoading] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -99,6 +104,7 @@ export function AdminManagement({
     officeLocation: "",
     officeHours: "",
     socialLinks: "",
+    assignedClasses: [] as string[],
   });
 
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -109,6 +115,9 @@ export function AdminManagement({
     setSelectedAdminForReport(admin);
     setIsReportModalOpen(true);
   };
+
+  // Extract class names from availableClasses
+  const classNamesList = availableClasses.map((c) => c.name).sort();
 
   const getTeacherStats = (teacherId: string) => {
     const teacherVisits = visits.filter(
@@ -147,8 +156,30 @@ export function AdminManagement({
     : null;
 
   useEffect(() => {
+    loadClasses();
     loadAdmins();
   }, []);
+
+  const loadClasses = async () => {
+    try {
+      setClassesLoading(true);
+      const response = await fetch("/api/classes");
+      if (!response.ok) throw new Error("Failed to fetch classes");
+      const data = await response.json();
+      if (data.success && Array.isArray(data.data)) {
+        setAvailableClasses(data.data);
+      }
+    } catch (error) {
+      console.error("Error loading classes:", error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat daftar kelas",
+        variant: "destructive",
+      });
+    } finally {
+      setClassesLoading(false);
+    }
+  };
 
   const loadAdmins = async () => {
     try {
@@ -160,16 +191,24 @@ export function AdminManagement({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch admins");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to fetch admins: ${response.status} - ${errorData.error || response.statusText}`,
+        );
       }
 
       const data = await response.json();
-      setAdmins(data.data);
+      if (data.success && Array.isArray(data.data)) {
+        setAdmins(data.data);
+      } else {
+        throw new Error("Invalid response format from API");
+      }
     } catch (error) {
       console.error("Error loading admins:", error);
       toast({
         title: "Error",
-        description: "Gagal memuat data admin",
+        description:
+          error instanceof Error ? error.message : "Gagal memuat data admin",
         variant: "destructive",
       });
     } finally {
@@ -255,6 +294,7 @@ export function AdminManagement({
         officeLocation: formData.officeLocation,
         officeHours: formData.officeHours,
         socialLinks: formData.socialLinks,
+        assignedClasses: formData.assignedClasses,
       };
 
       if (formData.password) {
@@ -362,6 +402,7 @@ export function AdminManagement({
       officeLocation: admin.officeLocation || "",
       officeHours: admin.officeHours || "",
       socialLinks: admin.socialLinks || "",
+      assignedClasses: admin.assignedClasses || [],
     });
     setIsEditDialogOpen(true);
   };
@@ -682,6 +723,46 @@ export function AdminManagement({
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-900">
+                Kelas yang Ditangani (opsional)
+              </Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                {classesLoading ? (
+                  <p className="text-sm text-slate-500 col-span-full">
+                    Memuat daftar kelas...
+                  </p>
+                ) : classNamesList.length === 0 ? (
+                  <p className="text-sm text-slate-500 col-span-full">
+                    Belum ada kelas
+                  </p>
+                ) : (
+                  classNamesList.map((cls) => (
+                    <label
+                      key={cls}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={(formData.assignedClasses || []).includes(cls)}
+                        onChange={(e) => {
+                          const next = new Set(formData.assignedClasses || []);
+                          if (e.target.checked) next.add(cls);
+                          else next.delete(cls);
+                          setFormData({
+                            ...formData,
+                            assignedClasses: Array.from(next),
+                          });
+                        }}
+                        className="accent-primary"
+                      />
+                      <span>{cls}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
             <AdminProfileFormFields
               formData={formData}
               setFormData={setFormData}
@@ -836,6 +917,50 @@ export function AdminManagement({
                   placeholder="Kosongkan jika tidak ubah"
                   className="pl-10 focus-visible:ring-blue-500/20"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-900">
+                  Kelas yang Ditangani (opsional)
+                </Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                  {classesLoading ? (
+                    <p className="text-sm text-slate-500 col-span-full">
+                      Memuat daftar kelas...
+                    </p>
+                  ) : classNamesList.length === 0 ? (
+                    <p className="text-sm text-slate-500 col-span-full">
+                      Belum ada kelas
+                    </p>
+                  ) : (
+                    classNamesList.map((cls) => (
+                      <label
+                        key={cls}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={(formData.assignedClasses || []).includes(
+                            cls,
+                          )}
+                          onChange={(e) => {
+                            const next = new Set(
+                              formData.assignedClasses || [],
+                            );
+                            if (e.target.checked) next.add(cls);
+                            else next.delete(cls);
+                            setFormData({
+                              ...formData,
+                              assignedClasses: Array.from(next),
+                            });
+                          }}
+                          className="accent-primary"
+                        />
+                        <span>{cls}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 

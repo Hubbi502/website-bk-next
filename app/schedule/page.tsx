@@ -542,7 +542,7 @@ const Schedule = () => {
   // --- Delegation Flow Handlers ---
   const handleStudentDecision = async (
     visitId: string,
-    decision: "cancel" | "continue",
+    decision: "cancel" | "continue" | "confirm",
   ) => {
     try {
       const response = await fetch(`/api/visits/${visitId}/student-decision`, {
@@ -559,6 +559,11 @@ const Schedule = () => {
 
       if (decision === "cancel") {
         toast.success("Kunjungan dibatalkan");
+        await loadVisits();
+      } else if (decision === "confirm") {
+        toast.success("Kunjungan disetujui! 🎉", {
+          description: "Guru dan Anda telah mengonfirmasi ketersediaan.",
+        });
         await loadVisits();
       } else {
         // Open teacher selection modal
@@ -636,7 +641,11 @@ const Schedule = () => {
   };
 
   const handleProposeTime = async () => {
-    if (!awaitingVisit || !negotiationDate || !negotiationTime || !studentData) return;
+    if (!awaitingVisit || !studentData) return;
+    if (!negotiationDate || !negotiationTime) {
+      toast.error("Tanggal dan waktu harus dipilih terlebih dahulu");
+      return;
+    }
     setIsProposingTime(true);
     try {
       const response = await fetch(`/api/visits/${awaitingVisit.id}/propose-time`, {
@@ -746,7 +755,9 @@ const Schedule = () => {
                     transform hover:scale-105 px-4 sm:px-6 py-3 focus-visible:ring-2 focus-visible:ring-blue-400 text-sm sm:text-base"
                   >
                     <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Ajukan Kunjungan Baru</span>
+                    <span className="hidden sm:inline">
+                      Ajukan Kunjungan Baru
+                    </span>
                     <span className="sm:hidden">Ajukan</span>
                   </Button>
                 </DialogTrigger>
@@ -1102,10 +1113,11 @@ const Schedule = () => {
                   {upcomingAppointments.map((visit) => (
                     <Card
                       key={visit.id}
-                      className={`relative overflow-hidden group hover:shadow-md transition-all ${visit.status === "awaiting_student"
-                        ? "cursor-pointer ring-1 ring-orange-200 hover:ring-orange-400"
-                        : ""
-                        }`}
+                      className={`relative overflow-hidden group hover:shadow-md transition-all ${
+                        visit.status === "awaiting_student"
+                          ? "cursor-pointer ring-1 ring-orange-200 hover:ring-orange-400"
+                          : ""
+                      }`}
                       onClick={() => {
                         if (visit.status === "awaiting_student") {
                           setAwaitingVisit(visit);
@@ -1114,20 +1126,21 @@ const Schedule = () => {
                       }}
                     >
                       <div
-                        className={`absolute top-0 left-0 w-1 h-full ${visit.status === "approved" ||
+                        className={`absolute top-0 left-0 w-1 h-full ${
+                          visit.status === "approved" ||
                           visit.status === "completed"
-                          ? "bg-green-500"
-                          : visit.status === "pending" ||
-                            visit.status === "awaiting_student" ||
-                            visit.status === "pending_delegation" ||
-                            visit.status === "pending_time_negotiation"
-                            ? "bg-amber-500"
-                            : visit.status === "waiting"
-                              ? "bg-amber-400"
-                              : visit.status === "cancelled"
-                                ? "bg-red-500"
-                                : "bg-blue-500"
-                          }`}
+                            ? "bg-green-500"
+                            : visit.status === "pending" ||
+                                visit.status === "awaiting_student" ||
+                                visit.status === "pending_delegation" ||
+                                visit.status === "pending_time_negotiation"
+                              ? "bg-amber-500"
+                              : visit.status === "waiting"
+                                ? "bg-amber-400"
+                                : visit.status === "cancelled"
+                                  ? "bg-red-500"
+                                  : "bg-blue-500"
+                        }`}
                       />
                       <CardContent className="p-5">
                         <div className="flex justify-between items-start mb-3">
@@ -1180,13 +1193,21 @@ const Schedule = () => {
                         </div>
 
                         {/* Countdown Bar for WAITING status */}
-                        {visit.status === "waiting" && visit.waitDurationMinutes && visit.waitExpiredAt && (
-                          <WaitCountdownBar
-                            waitDurationMinutes={visit.waitDurationMinutes}
-                            waitExpiredAt={visit.waitExpiredAt}
-                            onExpired={() => loadVisits()}
-                          />
-                        )}
+                        {visit.status === "waiting" &&
+                          visit.waitDurationMinutes &&
+                          visit.waitExpiredAt && (
+                            <WaitCountdownBar
+                              waitDurationMinutes={visit.waitDurationMinutes}
+                              waitExpiredAt={visit.waitExpiredAt}
+                              onExpired={() => {
+                                // Reload visits to get updated AWAITING_STUDENT status
+                                loadVisits();
+                                // Show the decision modal so student can choose next action
+                                setAwaitingVisit(visit);
+                                setIsUnavailableAlertOpen(true);
+                              }}
+                            />
+                          )}
                       </CardContent>
                     </Card>
                   ))}
@@ -1307,14 +1328,28 @@ const Schedule = () => {
         >
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-orange-700">
-                <AlertTriangle className="h-5 w-5 shrink-0" />
-                Guru BK Tidak Tersedia
+              <DialogTitle
+                className={`flex items-center gap-2 ${awaitingVisit?.notes?.includes("Guru BK tersedia") ? "text-green-700" : "text-orange-700"}`}
+              >
+                {awaitingVisit?.notes?.includes("Guru BK tersedia") ? (
+                  <CheckCircle2 className="h-5 w-5 shrink-0" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5 shrink-0" />
+                )}
+                {awaitingVisit?.notes?.includes("Guru BK tersedia")
+                  ? "Guru BK Sekarang Tersedia! 🎉"
+                  : awaitingVisit?.notes?.includes("Waktu tunggu habis")
+                    ? "Waktu Tunggu Habis"
+                    : "Guru BK Tidak Tersedia"}
               </DialogTitle>
               <DialogDescription className="text-sm leading-relaxed">
-                {awaitingVisit?.targetTeacher
-                  ? `Guru BK ${awaitingVisit.targetTeacher.name} sedang tidak tersedia untuk jadwal yang Anda ajukan.`
-                  : "Guru BK yang Anda pilih sedang tidak tersedia."}
+                {awaitingVisit?.notes?.includes("Guru BK tersedia")
+                  ? `${awaitingVisit?.targetTeacher?.name || "Guru BK"} sekarang tersedia dan siap menemui Anda. Apakah Anda masih bisa hadir?`
+                  : awaitingVisit?.notes?.includes("Waktu tunggu habis")
+                    ? `Waktu tunggu untuk kunjungan dengan ${awaitingVisit?.targetTeacher?.name || "Guru BK"} telah habis. Silakan pilih tindakan selanjutnya.`
+                    : awaitingVisit?.targetTeacher
+                      ? `Guru BK ${awaitingVisit.targetTeacher.name} sedang tidak tersedia untuk jadwal yang Anda ajukan.`
+                      : "Guru BK yang Anda pilih sedang tidak tersedia."}
               </DialogDescription>
             </DialogHeader>
 
@@ -1322,57 +1357,106 @@ const Schedule = () => {
               {/* Visit info */}
               {awaitingVisit && (
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-700 space-y-1">
-                  <p><strong>Tanggal:</strong>{" "}
-                    {new Date(awaitingVisit.visitDate).toLocaleDateString("id-ID", {
-                      weekday: "long", year: "numeric", month: "long", day: "numeric",
-                    })}
+                  <p>
+                    <strong>Tanggal:</strong>{" "}
+                    {new Date(awaitingVisit.visitDate).toLocaleDateString(
+                      "id-ID",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}
                   </p>
-                  <p><strong>Waktu:</strong> {awaitingVisit.visitTime} WIB</p>
-                  <p className="line-clamp-2"><strong>Alasan:</strong> {awaitingVisit.reason}</p>
+                  <p>
+                    <strong>Waktu:</strong> {awaitingVisit.visitTime} WIB
+                  </p>
+                  <p className="line-clamp-2">
+                    <strong>Alasan:</strong> {awaitingVisit.reason}
+                  </p>
                 </div>
               )}
 
               {/* Options hint */}
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                <p className="text-sm text-orange-800 font-medium">Pilih tindakan:</p>
+              <div
+                className={`${awaitingVisit?.notes?.includes("Guru BK tersedia") ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"} border rounded-lg p-3`}
+              >
+                <p
+                  className={`text-sm font-medium ${awaitingVisit?.notes?.includes("Guru BK tersedia") ? "text-green-800" : "text-orange-800"}`}
+                >
+                  {awaitingVisit?.notes?.includes("Guru BK tersedia")
+                    ? "Guru BK sekarang tersedia! Konfirmasi ketersediaan Anda:"
+                    : "Pilih tindakan:"}
+                </p>
               </div>
 
-              {/* Action buttons — stacked vertically, full width */}
+              {/* Action buttons — different for teacher-available vs unavailable */}
               <div className="flex flex-col gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    awaitingVisit &&
-                    handleStudentDecision(awaitingVisit.id, "cancel")
-                  }
-                  className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
-                >
-                  <XCircle className="h-4 w-4 mr-2 shrink-0" />
-                  Batalkan Kunjungan
-                </Button>
-                <Button
-                  onClick={() =>
-                    awaitingVisit &&
-                    handleStudentDecision(awaitingVisit.id, "continue")
-                  }
-                  className="w-full justify-start bg-blue-600 hover:bg-blue-700"
-                >
-                  <UserCheck className="h-4 w-4 mr-2 shrink-0" />
-                  Pilih Guru BK Lain
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsUnavailableAlertOpen(false);
-                    setNegotiationDate("");
-                    setNegotiationTime("");
-                    setNegotiationBookedSlots([]);
-                    setIsTimeNegotiationOpen(true);
-                  }}
-                  className="w-full justify-start bg-purple-600 hover:bg-purple-700"
-                >
-                  <Clock className="h-4 w-4 mr-2 shrink-0" />
-                  Usulkan Waktu Lain (Guru Sama)
-                </Button>
+                {awaitingVisit?.notes?.includes("Guru BK tersedia") ? (
+                  <>
+                    {/* Teacher is available — student confirms or declines */}
+                    <Button
+                      onClick={() =>
+                        awaitingVisit &&
+                        handleStudentDecision(awaitingVisit.id, "confirm")
+                      }
+                      className="w-full justify-start bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2 shrink-0" />
+                      Ya, Saya Masih Tersedia
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        awaitingVisit &&
+                        handleStudentDecision(awaitingVisit.id, "cancel")
+                      }
+                      className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      <XCircle className="h-4 w-4 mr-2 shrink-0" />
+                      Tidak, Batalkan Kunjungan
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {/* Teacher unavailable / wait expired — pick another teacher or propose time */}
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        awaitingVisit &&
+                        handleStudentDecision(awaitingVisit.id, "cancel")
+                      }
+                      className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      <XCircle className="h-4 w-4 mr-2 shrink-0" />
+                      Batalkan Kunjungan
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        awaitingVisit &&
+                        handleStudentDecision(awaitingVisit.id, "continue")
+                      }
+                      className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                    >
+                      <UserCheck className="h-4 w-4 mr-2 shrink-0" />
+                      Pilih Guru BK Lain
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setIsUnavailableAlertOpen(false);
+                        setNegotiationDate("");
+                        setNegotiationTime("");
+                        setNegotiationBookedSlots([]);
+                        setIsTimeNegotiationOpen(true);
+                      }}
+                      className="w-full justify-start bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Clock className="h-4 w-4 mr-2 shrink-0" />
+                      Usulkan Waktu Lain (Guru Sama)
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </DialogContent>
@@ -1413,16 +1497,18 @@ const Schedule = () => {
                     <div
                       key={teacher.id}
                       onClick={() => setSelectedDelegateTeacherId(teacher.id)}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${selectedDelegateTeacherId === teacher.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
-                        }`}
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        selectedDelegateTeacherId === teacher.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                      }`}
                     >
                       <div
-                        className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${selectedDelegateTeacherId === teacher.id
-                          ? "border-blue-500"
-                          : "border-slate-300"
-                          }`}
+                        className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
+                          selectedDelegateTeacherId === teacher.id
+                            ? "border-blue-500"
+                            : "border-slate-300"
+                        }`}
                       >
                         {selectedDelegateTeacherId === teacher.id && (
                           <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
@@ -1493,18 +1579,32 @@ const Schedule = () => {
                 Usulkan Waktu Baru
               </DialogTitle>
               <DialogDescription>
-                Pilih tanggal dan waktu yang Anda inginkan untuk kunjungan dengan{" "}
-                <strong>{awaitingVisit?.targetTeacher?.name || "Guru BK"}</strong>.
+                Pilih tanggal dan waktu yang Anda inginkan untuk kunjungan
+                dengan{" "}
+                <strong>
+                  {awaitingVisit?.targetTeacher?.name || "Guru BK"}
+                </strong>
+                .
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
               {awaitingVisit && (
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
-                  <p><strong>Guru BK:</strong> {awaitingVisit.targetTeacher?.name}</p>
-                  <p><strong>Jadwal awal:</strong>{" "}
-                    {new Date(awaitingVisit.visitDate).toLocaleDateString("id-ID", {
-                      weekday: "long", year: "numeric", month: "long", day: "numeric",
-                    })}{" "}
+                  <p>
+                    <strong>Guru BK:</strong>{" "}
+                    {awaitingVisit.targetTeacher?.name}
+                  </p>
+                  <p>
+                    <strong>Jadwal awal:</strong>{" "}
+                    {new Date(awaitingVisit.visitDate).toLocaleDateString(
+                      "id-ID",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}{" "}
                     {awaitingVisit.visitTime} WIB
                   </p>
                 </div>
@@ -1526,7 +1626,7 @@ const Schedule = () => {
                       fetchNegotiationBookedSlots(
                         awaitingVisit.targetTeacherId,
                         e.target.value,
-                        awaitingVisit.id
+                        awaitingVisit.id,
                       );
                     }
                   }}
@@ -1543,7 +1643,11 @@ const Schedule = () => {
                   disabled={!negotiationDate}
                 >
                   <SelectTrigger id="negTime">
-                    <SelectValue placeholder={negotiationDate ? "Pilih waktu" : "Pilih tanggal dahulu"} />
+                    <SelectValue
+                      placeholder={
+                        negotiationDate ? "Pilih waktu" : "Pilih tanggal dahulu"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {timeSlots.map((time) => {
@@ -1580,8 +1684,9 @@ const Schedule = () => {
                 Batal
               </Button>
               <Button
+                type="button"
                 onClick={handleProposeTime}
-                disabled={!negotiationDate || !negotiationTime || isProposingTime}
+                disabled={isProposingTime}
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 {isProposingTime ? (

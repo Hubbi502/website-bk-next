@@ -9,7 +9,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 // ===== DATA KELAS =====
-const grades = ["X", "XI", "XII"];
+const grades = ["X", "XI", "XII", "XIII"];
 const majors = ["RPL", "DKV", "SIJA"];
 const classNumbers = [1, 2];
 
@@ -23,7 +23,7 @@ for (const grade of grades) {
   }
 }
 
-// ===== DATA NAMA MURID (90 nama unik, 5 per kelas) =====
+// ===== DATA NAMA MURID (120 nama unik, 5 per kelas) =====
 const studentNames = [
   // X RPL 1
   "Andi Pratama", "Bella Safitri", "Candra Wijaya", "Dina Maharani", "Eko Saputra",
@@ -61,6 +61,18 @@ const studentNames = [
   "Elsa Manurung", "Farhan Alawi", "Gina Maulida", "Hadi Pranoto", "Ika Nurjannah",
   // XII SIJA 2
   "Jihan Salsabila", "Krisna Murti", "Lina Marlina", "Mahesa Putra", "Nur Aini",
+  // XIII RPL 1
+  "Ophelia Kezia", "Pamela Wijaya", "Qadri Pratama", "Rossa Angelia", "Satya Kusuma",
+  // XIII RPL 2
+  "Tahira Maharani", "Umang Pratomo", "Venita Salsabila", "Wiguna Dharma", "Yuliana Kusuma",
+  // XIII DKV 1
+  "Zelda Aurora", "Abrar Muhyi", "Balqis Nur", "Chandra Kusuma", "Dinda Puspita",
+  // XIII DKV 2
+  "Erlina Sari", "Farida Kusuma", "Gema Pratama", "Hilda Maharani", "Ismail Nurjaman",
+  // XIII SIJA 1
+  "Jamila Lestari", "Kalila Putri", "Lutfi Ramadhan", "Melati Dewi", "Nandi Permana",
+  // XIII SIJA 2
+  "Octa Hartono", "Persada Wijaya", "Qisya Amelia", "Rasyid Pratama", "Sakti Nugraha",
 ];
 
 async function main() {

@@ -71,7 +71,7 @@ interface StudentManagementProps {
 }
 
 // Generate all class names
-const grades = ["X", "XI", "XII"];
+const grades = ["X", "XI", "XII", "XIII"];
 const majors = ["RPL", "DKV", "SIJA"];
 const classNumbers = [1, 2];
 const ALL_CLASSES: string[] = [];

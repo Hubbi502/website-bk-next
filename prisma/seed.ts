@@ -17,7 +17,7 @@ const prisma = new PrismaClient({
 });
 
 // ===== DATA KELAS =====
-const grades = ["X", "XI", "XII"];
+const grades = ["X", "XI", "XII", "XIII"];
 const majorsList = [
   { name: "Rekayasa Perangkat Lunak", code: "RPL" },
   { name: "Desain Komunikasi Visual", code: "DKV" },
@@ -73,6 +73,18 @@ const studentNames = [
   "Elsa Manurung", "Farhan Alawi", "Gina Maulida", "Hadi Pranoto", "Ika Nurjannah",
   // XII SIJA 2
   "Jihan Salsabila", "Krisna Murti", "Lina Marlina", "Mahesa Putra", "Nur Aini",
+  // XIII RPL 1
+  "Ophelia Kezia", "Pamela Wijaya", "Qadri Pratama", "Rossa Angelia", "Satya Kusuma",
+  // XIII RPL 2
+  "Tahira Maharani", "Umang Pratomo", "Venita Salsabila", "Wiguna Dharma", "Yuliana Kusuma",
+  // XIII DKV 1
+  "Zelda Aurora", "Abrar Muhyi", "Balqis Nur", "Chandra Kusuma", "Dinda Puspita",
+  // XIII DKV 2
+  "Erlina Sari", "Farida Kusuma", "Gema Pratama", "Hilda Maharani", "Ismail Nurjaman",
+  // XIII SIJA 1
+  "Jamila Lestari", "Kalila Putri", "Lutfi Ramadhan", "Melati Dewi", "Nandi Permana",
+  // XIII SIJA 2
+  "Octa Hartono", "Persada Wijaya", "Qisya Amelia", "Rasyid Pratama", "Sakti Nugraha",
 ];
 
 async function main() {

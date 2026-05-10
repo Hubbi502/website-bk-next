@@ -10,11 +10,11 @@ export async function POST(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { decision } = body; // "cancel" | "continue"
+        const { decision } = body; // "cancel" | "continue" | "confirm"
 
-        if (!decision || !["cancel", "continue"].includes(decision)) {
+        if (!decision || !["cancel", "continue", "confirm"].includes(decision)) {
             return NextResponse.json(
-                { success: false, error: "decision harus 'cancel' atau 'continue'" },
+                { success: false, error: "decision harus 'cancel', 'continue', atau 'confirm'" },
                 { status: 400 }
             );
         }
@@ -53,6 +53,34 @@ export async function POST(
             return NextResponse.json({
                 success: true,
                 message: "Kunjungan berhasil dibatalkan",
+                data: {
+                    id: updatedVisit.id,
+                    status: updatedVisit.status.toLowerCase(),
+                },
+            });
+        }
+
+        if (decision === "confirm") {
+            // Siswa mengonfirmasi ketersediaan — setujui kunjungan
+            const updatedVisit = await prisma.visit.update({
+                where: { id },
+                data: {
+                    status: "APPROVED",
+                    approvedBy: visit.targetTeacherId,
+                    notes: "Disetujui: guru dan siswa telah mengonfirmasi ketersediaan.",
+                },
+            });
+
+            await pusherServer.trigger(VISIT_CHANNEL, "visit-status-changed", {
+                visitId: id,
+                status: "APPROVED",
+                studentId: visit.studentId,
+                reason: "student_confirmed_available",
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: "Kunjungan disetujui. Guru dan siswa telah mengonfirmasi ketersediaan.",
                 data: {
                     id: updatedVisit.id,
                     status: updatedVisit.status.toLowerCase(),

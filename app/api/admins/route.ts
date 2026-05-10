@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         username: true,
+        assignedClasses: true,
         role: true,
         profileImageUrl: true,
         shortBio: true,
@@ -112,7 +113,8 @@ export async function POST(request: NextRequest) {
       emailPublic,
       officeLocation,
       officeHours,
-      socialLinks 
+      socialLinks,
+      assignedClasses
     } = body;
 
     // Validation
@@ -145,6 +147,21 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Validate assignedClasses if provided
+    let validAssignedClasses: string[] | undefined = undefined;
+    if (assignedClasses !== undefined) {
+      if (!Array.isArray(assignedClasses) || assignedClasses.some(c => typeof c !== 'string')) {
+        return NextResponse.json({ error: "assignedClasses harus berupa array string" }, { status: 400 });
+      }
+      // Ensure all class names exist
+      const found = await prisma.class.findMany({ where: { name: { in: assignedClasses as string[] } }, select: { name: true } });
+      const foundNames = found.map(f => f.name);
+      const missing = (assignedClasses as string[]).filter(c => !foundNames.includes(c));
+      if (missing.length > 0) {
+        return NextResponse.json({ error: `Beberapa kelas tidak ditemukan: ${missing.join(', ')}` }, { status: 400 });
+      }
+      validAssignedClasses = assignedClasses as string[];
+    }
     // Create admin
     const newAdmin = await prisma.admin.create({
       data: {
@@ -163,6 +180,7 @@ export async function POST(request: NextRequest) {
         officeLocation: officeLocation || null,
         officeHours: officeHours || null,
         socialLinks: socialLinks ? (typeof socialLinks === 'string' ? socialLinks : JSON.stringify(socialLinks)) : null,
+        assignedClasses: validAssignedClasses ?? [],
       },
       select: {
         id: true,
