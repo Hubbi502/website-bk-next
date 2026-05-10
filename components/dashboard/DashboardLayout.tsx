@@ -18,14 +18,17 @@ import {
   Home,
   Clock,
   ShieldCheck,
-  GraduationCap
+  GraduationCap,
+  UserCircle,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
   adminData: any;
   activeTab: "overview" | "articles" | "visits" | "admins" | "students";
-  setActiveTab: (tab: "overview" | "articles" | "visits" | "admins" | "students") => void;
+  setActiveTab: (
+    tab: "overview" | "articles" | "visits" | "admins" | "students",
+  ) => void;
   articlesCount: number;
   pendingVisitsCount: number;
   currentPageTitle: string;
@@ -38,7 +41,7 @@ export function DashboardLayout({
   setActiveTab,
   articlesCount,
   pendingVisitsCount,
-  currentPageTitle
+  currentPageTitle,
 }: DashboardLayoutProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -161,6 +164,15 @@ export function DashboardLayout({
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-slate-800 space-y-2">
+          <Link href="/dashboard/profile">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800"
+            >
+              <UserCircle className="h-5 w-5 mr-3" />
+              Profil Saya
+            </Button>
+          </Link>
           <Link href="/">
             <Button
               variant="ghost"

@@ -154,6 +154,7 @@ export function AdminProfileFormFields({
         <Label htmlFor="bio">Bio Lengkap</Label>
         <Textarea
           id="bio"
+          maxLength={2000}
           value={formData.bio || ""}
           onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
           placeholder="Deskripsi lengkap diri..."
