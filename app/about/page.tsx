@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import { TeacherProfiles } from "@/components/TeacherProfiles";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const About = async () => {
   // Ambil data admin/guru BK untuk ditampilkan di profil
   const teachers = await prisma.admin.findMany({
