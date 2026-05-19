@@ -90,11 +90,13 @@ const Navbar = () => {
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 lg:h-18">
           {/* Logo */}
-          <Image
-            src={Logo}
-            alt="Sahabat BK"
-            className="w-12 h-12 lg:w-40 lg:h-40 rounded-xl object-cover"
-          />
+          <Link href="/" className="flex shrink-0 items-center">
+            <Image
+              src={Logo}
+              alt="Sahabat BK"
+              className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl object-contain transition-transform hover:scale-105"
+            />
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
@@ -354,8 +356,11 @@ const Navbar = () => {
               </DropdownMenu>
             )}
 
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
+            <DropdownMenu
+              open={isMobileMenuOpen}
+              onOpenChange={setIsMobileMenuOpen}
+            >
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden">
                   {isMobileMenuOpen ? (
                     <X className="h-5 w-5" />
@@ -363,59 +368,65 @@ const Navbar = () => {
                     <Menu className="h-5 w-5" />
                   )}
                 </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-                <SheetHeader className="mb-6">
-                  <SheetTitle className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                      BK
-                    </div>
-                    <span className="font-bold text-lg">Sahabat BK</span>
-                  </SheetTitle>
-                </SheetHeader>
-
-                <div className="flex flex-col space-y-2">
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-[280px] sm:w-[320px] p-2 bg-white border border-gray-100 shadow-xl rounded-xl"
+              >
+                <DropdownMenuLabel className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                    BK
+                  </div>
+                  <span className="font-bold text-lg">Sahabat BK</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="flex flex-col space-y-1 mt-2">
                   {navItems.map((item) => (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start gap-3 h-12 ${
-                          isActive(item.path)
-                            ? "bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold"
-                            : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                        }`}
+                    <DropdownMenuItem asChild key={item.path} className="p-0">
+                      <Link
+                        href={item.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full"
                       >
-                        <item.icon className="h-5 w-5" />
-                        {item.label}
-                      </Button>
-                    </Link>
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start gap-3 h-12 ${
+                            isActive(item.path)
+                              ? "bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold"
+                              : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          {item.label}
+                        </Button>
+                      </Link>
+                    </DropdownMenuItem>
                   ))}
 
                   {isLoggedIn && (
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start gap-3 h-12 mt-2 ${
-                          isActive("/dashboard")
-                            ? "bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold"
-                            : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                        }`}
+                    <DropdownMenuItem asChild className="p-0 mt-1">
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full"
                       >
-                        <LayoutDashboard className="h-5 w-5" />
-                        Dashboard
-                      </Button>
-                    </Link>
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start gap-3 h-12 ${
+                            isActive("/dashboard")
+                              ? "bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold"
+                              : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          <LayoutDashboard className="h-5 w-5" />
+                          Dashboard
+                        </Button>
+                      </Link>
+                    </DropdownMenuItem>
                   )}
                 </div>
-              </SheetContent>
-            </Sheet>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
