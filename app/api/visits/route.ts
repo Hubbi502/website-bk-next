@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { pusherServer, VISIT_CHANNEL, VISIT_BOOKED_EVENT } from "@/lib/pusher";
-import { verifyToken } from "@/lib/jwt";
+import { verifyToken, ADMIN_TOKEN_COOKIE, STUDENT_TOKEN_COOKIE } from "@/lib/jwt";
 
 // GET - Mengambil kunjungan (filter berdasarkan studentId atau teacherId)
 export async function GET(request: NextRequest) {
@@ -10,9 +10,14 @@ export async function GET(request: NextRequest) {
     const studentId = searchParams.get("studentId");
     const teacherId = searchParams.get("teacherId");
 
-    // Ambil token dari header Authorization
+    // Ambil token dari cookie (konsisten dengan API route lainnya)
+    const adminCookieToken = request.cookies.get(ADMIN_TOKEN_COOKIE)?.value;
+    const studentCookieToken = request.cookies.get(STUDENT_TOKEN_COOKIE)?.value;
+    const cookieToken = adminCookieToken || studentCookieToken;
+    // Fallback ke Authorization header jika cookie tidak ada
     const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
+    const headerToken = authHeader?.replace("Bearer ", "");
+    const token = cookieToken || headerToken;
     const user = token ? verifyToken(token) : null;
     const userRole = user && "role" in user ? user.role : null;
     const userId = user && "id" in user ? user.id : null;
