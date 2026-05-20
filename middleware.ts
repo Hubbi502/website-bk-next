@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ADMIN_TOKEN_COOKIE, STUDENT_TOKEN_COOKIE } from "./lib/jwt";
 
-// Nama cookie JWT admin (harus sama dengan ADMIN_TOKEN_COOKIE di lib/jwt.ts)
-const ADMIN_TOKEN_COOKIE = "admin_token";
 
 // Route yang membutuhkan autentikasi admin
 const PROTECTED_PATHS = ["/dashboard", "/dsh"];

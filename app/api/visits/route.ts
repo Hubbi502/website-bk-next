@@ -39,23 +39,21 @@ export async function GET(request: NextRequest) {
       const allowedClasses = admin?.assignedClasses || [];
 
       // Admin biasa bisa melihat:
-      // 1. Visits yang ditujukan kepada mereka
-      // 2. Visits yang didelegasikan ke mereka (legacy)
-      // 3. Visits yang di-assign ke mereka (delegasi baru)
-      // 4. HANYA untuk murid dari kelas yang diajar/dibina
-      whereClause.AND = [
+      // 1. Visits yang ditujukan kepada mereka DAN kelasnya sesuai
+      // 2. Visits yang didelegasikan ke mereka (tampil tanpa filter kelas)
+      // 3. Visits yang di-assign ke mereka / delegasi baru (tampil tanpa filter kelas)
+      whereClause.OR = [
+        // Visits langsung ditargetkan ke guru ini, filter berdasarkan kelas yang diajar
         {
-          OR: [
-            { targetTeacherId: teacherId },
-            { delegatedToTeacherId: teacherId },
-            { assignedAdminId: teacherId },
-          ]
-        },
-        {
+          targetTeacherId: teacherId,
           class: {
             name: { in: allowedClasses }
           }
-        }
+        },
+        // Visits yang didelegasikan ke guru ini (legacy) - tampil tanpa filter kelas
+        { delegatedToTeacherId: teacherId },
+        // Visits yang di-assign ke guru ini (delegasi baru) - tampil tanpa filter kelas
+        { assignedAdminId: teacherId },
       ];
     }
 
