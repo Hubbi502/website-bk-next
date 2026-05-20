@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause berdasarkan role dan parameter
     let whereClause: Record<string, unknown> = {};
-
+//ububu
     if (studentId) {
       // Filter untuk student melihat kunjungan mereka sendiri
       whereClause.studentId = studentId;

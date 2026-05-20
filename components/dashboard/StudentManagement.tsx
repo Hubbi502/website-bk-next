@@ -50,6 +50,7 @@ import {
     Search,
     Phone,
     Hash,
+    Loader2,
 } from "lucide-react";
 
 interface Student {
@@ -100,6 +101,9 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
         class: "",
         phone: "",
     });
+    const [saving, setSaving] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const availableClasses =
         adminData.role === "SUPER_ADMIN" ? ALL_CLASSES : (adminData.assignedClasses || []);
@@ -153,6 +157,7 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
                 return;
             }
 
+            setSaving(true);
             const response = await fetch("/api/students", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -185,6 +190,8 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
                 description: message,
                 variant: "destructive",
             });
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -192,6 +199,7 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
         if (!selectedStudent) return;
 
         try {
+            setUpdating(true);
             const response = await fetch(`/api/students/${selectedStudent.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -225,6 +233,8 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
                 description: message,
                 variant: "destructive",
             });
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -232,6 +242,7 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
         if (!selectedStudent) return;
 
         try {
+            setDeleting(true);
             const params = new URLSearchParams({
                 teacherId: adminData.id,
                 role: adminData.role,
@@ -263,6 +274,8 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
                 description: message,
                 variant: "destructive",
             });
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -596,9 +609,17 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
                 </Button>
                 <Button
                   onClick={handleCreateStudent}
+                  disabled={saving}
                   className="bg-emerald-600 hover:bg-emerald-700 shadow-sm flex-1 sm:flex-none"
                 >
-                  Simpan Siswa
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    "Simpan Siswa"
+                  )}
                 </Button>
               </div>
             </DialogFooter>
@@ -762,9 +783,17 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
                 </Button>
                 <Button
                   onClick={handleUpdateStudent}
+                  disabled={updating}
                   className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex-1 sm:flex-none"
                 >
-                  Simpan Perubahan
+                  {updating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Memperbarui...
+                    </>
+                  ) : (
+                    "Simpan Perubahan"
+                  )}
                 </Button>
               </div>
             </DialogFooter>
@@ -804,9 +833,17 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteStudent}
+                disabled={deleting}
                 className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white"
               >
-                Ya, Hapus
+                {deleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Menghapus...
+                  </>
+                ) : (
+                  "Ya, Hapus"
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
