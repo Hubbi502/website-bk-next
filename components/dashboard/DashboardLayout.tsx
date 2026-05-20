@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/use-toast";
 import { isSuperAdmin } from "@/lib/permissions";
 import {
@@ -26,9 +26,23 @@ import {
 interface DashboardLayoutProps {
   children: ReactNode;
   adminData: any;
-  activeTab: "overview" | "articles" | "visits" | "admins" | "students" | "majors" | "classes";
+  activeTab:
+    | "overview"
+    | "articles"
+    | "visits"
+    | "admins"
+    | "students"
+    | "majors"
+    | "classes";
   setActiveTab: (
-    tab: "overview" | "articles" | "visits" | "admins" | "students" | "majors" | "classes",
+    tab:
+      | "overview"
+      | "articles"
+      | "visits"
+      | "admins"
+      | "students"
+      | "majors"
+      | "classes",
   ) => void;
   articlesCount: number;
   pendingVisitsCount: number;
@@ -117,8 +131,13 @@ export function DashboardLayout({
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 border-2 border-blue-500">
-              <AvatarFallback className="bg-blue-600 text-white font-semibold">
-                {adminData.name.substring(0, 2).toUpperCase()}
+              <AvatarImage
+                src={adminData.profileImageUrl || undefined}
+                alt={adminData.name}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-blue-600 text-white flex items-center justify-center">
+                <UserCircle className="h-7 w-7" />
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -263,8 +282,13 @@ export function DashboardLayout({
           <div className="md:hidden absolute top-[73px] left-0 right-0 z-30 bg-slate-900 text-white shadow-xl border-t border-slate-700 animate-in slide-in-from-top-2">
             <div className="p-4 border-b border-slate-800 flex items-center gap-3">
               <Avatar className="h-10 w-10 border-2 border-blue-500">
-                <AvatarFallback className="bg-blue-600 text-white font-semibold">
-                  {adminData.name.substring(0, 2).toUpperCase()}
+                <AvatarImage
+                  src={adminData.profileImageUrl || undefined}
+                  alt={adminData.name}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-blue-600 text-white flex items-center justify-center">
+                  <UserCircle className="h-6 w-6" />
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">

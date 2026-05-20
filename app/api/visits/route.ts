@@ -237,6 +237,7 @@ export async function POST(request: NextRequest) {
         teacherId: targetTeacherId,
         visitDate,
         visitTime,
+        studentId: studentId || null,
       });
     }
 

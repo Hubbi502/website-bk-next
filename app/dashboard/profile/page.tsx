@@ -198,7 +198,7 @@ export default function ProfilePage() {
               name: data.data.name,
               username: data.data.username,
               role: data.data.role,
-            })
+            }),
           );
         } catch {
           // ignore parse errors
@@ -209,6 +209,9 @@ export default function ProfilePage() {
         title: "Profil tersimpan",
         description: "Perubahan berhasil disimpan.",
       });
+
+      // Redirect to dashboard after saving
+      router.push("/dashboard");
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({

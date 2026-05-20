@@ -270,7 +270,12 @@ const Schedule = () => {
 
     channel.bind(
       VISIT_BOOKED_EVENT,
-      (data: { teacherId: string; visitDate: string; visitTime: string }) => {
+      (data: {
+        teacherId: string;
+        visitDate: string;
+        visitTime: string;
+        studentId?: string;
+      }) => {
         // Jika event untuk guru & tanggal yang sedang dipilih, update bookedSlots
         if (
           data.teacherId === selectedTeacherId &&
@@ -282,7 +287,11 @@ const Schedule = () => {
           });
 
           // Jika user sudah memilih waktu yang baru saja diambil user lain
-          if (data.visitTime === visitForm.visitTime) {
+          // Dan yang mengambil bukan user ini sendiri (dibedakan via studentId)
+          if (
+            data.visitTime === visitForm.visitTime &&
+            data.studentId !== studentData?.id
+          ) {
             setVisitForm((prev) => ({ ...prev, visitTime: "" }));
             toast.warning(
               "Waktu yang Anda pilih baru saja diambil oleh siswa lain",
@@ -314,7 +323,12 @@ const Schedule = () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [selectedTeacherId, visitForm.visitDate, visitForm.visitTime]);
+  }, [
+    selectedTeacherId,
+    visitForm.visitDate,
+    visitForm.visitTime,
+    studentData?.id,
+  ]);
 
   const loadVisits = async () => {
     try {
