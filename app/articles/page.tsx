@@ -56,12 +56,15 @@ const Articles = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Articles & Resources</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Articles & Resources
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore our collection of informative articles on personal growth, mental health, and career guidance
+            Explore our collection of informative articles on personal growth,
+            mental health, and career guidance
           </p>
         </div>
 
@@ -75,7 +78,7 @@ const Articles = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
-          </div>      
+          </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="md:w-[200px]">
               <SelectValue placeholder="Category" />
@@ -101,8 +104,11 @@ const Articles = () => {
         {!isLoading && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
             {filteredArticles.map((article, index) => (
-              <div key={article.id} style={{ animationDelay: `${index * 50}ms` }}>
-                <ArticleCard 
+              <div
+                key={article.id}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <ArticleCard
                   id={String(article.id)}
                   title={article.title}
                   description={article.excerpt}
@@ -116,12 +122,10 @@ const Articles = () => {
           </div>
         )}
 
-        {!isLoading && filteredArticles.length === 0 && (
+        {!isLoading && filteredArticles.length === 0 && articles.length > 0 && (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
-              {articles.length === 0 
-                ? "Belum ada artikel yang tersedia." 
-                : "Tidak ada artikel yang sesuai dengan kriteria pencarian."}
+              Tidak ada artikel yang sesuai dengan kriteria pencarian.
             </p>
           </div>
         )}
