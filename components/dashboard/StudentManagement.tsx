@@ -170,8 +170,13 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || "Gagal menambahkan siswa");
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    throw new Error("Terjadi kesalahan pada server");
+                }
+                throw new Error(errorData.error || "Gagal menambahkan siswa");
             }
 
             toast({
@@ -184,7 +189,6 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
             loadStudents();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Gagal menambahkan siswa";
-            console.error("Error creating student:", error);
             toast({
                 title: "Error",
                 description: message,
@@ -212,8 +216,13 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || "Gagal memperbarui data siswa");
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    throw new Error("Terjadi kesalahan pada server");
+                }
+                throw new Error(errorData.error || "Gagal memperbarui data siswa");
             }
 
             toast({
@@ -227,7 +236,6 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
             loadStudents();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Gagal memperbarui siswa";
-            console.error("Error updating student:", error);
             toast({
                 title: "Error",
                 description: message,
@@ -254,8 +262,13 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
             );
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || "Gagal menghapus siswa");
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    throw new Error("Terjadi kesalahan pada server");
+                }
+                throw new Error(errorData.error || "Gagal menghapus siswa");
             }
 
             toast({
@@ -268,7 +281,6 @@ export function StudentManagement({ adminData }: StudentManagementProps) {
             loadStudents();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Gagal menghapus siswa";
-            console.error("Error deleting student:", error);
             toast({
                 title: "Error",
                 description: message,
