@@ -104,7 +104,7 @@ const Login = () => {
 
       {/* Back button */}
       <Link href="/" className="absolute top-4 left-4 z-20">
-        <Button variant="ghost" className="gap-2 text-white hover:bg-white/10">
+      <Button variant="ghost" className="gap-2 text-white hover:bg-white/10">
           <ArrowLeft className="h-4 w-4" />
           Kembali
         </Button>

@@ -27,14 +27,30 @@ export async function GET(request: NextRequest) {
       // Super Admin: ambil semua visit tanpa filter
       // Tidak perlu whereClause
     } else if (teacherId && userRole === "ADMIN") {
+      const admin = await prisma.admin.findUnique({
+        where: { id: teacherId },
+        select: { assignedClasses: true },
+      });
+      const allowedClasses = admin?.assignedClasses || [];
+
       // Admin biasa bisa melihat:
       // 1. Visits yang ditujukan kepada mereka
       // 2. Visits yang didelegasikan ke mereka (legacy)
       // 3. Visits yang di-assign ke mereka (delegasi baru)
-      whereClause.OR = [
-        { targetTeacherId: teacherId },
-        { delegatedToTeacherId: teacherId },
-        { assignedAdminId: teacherId },
+      // 4. HANYA untuk murid dari kelas yang diajar/dibina
+      whereClause.AND = [
+        {
+          OR: [
+            { targetTeacherId: teacherId },
+            { delegatedToTeacherId: teacherId },
+            { assignedAdminId: teacherId },
+          ]
+        },
+        {
+          class: {
+            name: { in: allowedClasses }
+          }
+        }
       ];
     }
 
