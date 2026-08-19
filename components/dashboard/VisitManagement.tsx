@@ -693,12 +693,14 @@ export function VisitManagement({
     buttons.push(
       <Button
         key="detail"
-        size="sm"
+        size="default"
         variant="outline"
         onClick={() => handleViewDetail(visit)}
         title="Lihat Detail"
+        className="font-medium bg-white hover:bg-slate-100"
       >
-        <FileEdit className="h-4 w-4" />
+        <FileEdit className="h-4 w-4 mr-2" />
+        Detail
       </Button>,
     );
 
@@ -707,21 +709,24 @@ export function VisitManagement({
       buttons.push(
         <Button
           key="accept"
-          size="sm"
+          size="default"
           onClick={() => handleAcceptDelegation(visit)}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700 font-medium"
           title="Terima Delegasi"
         >
-          <UserCheck className="h-4 w-4" />
+          <UserCheck className="h-4 w-4 mr-2" />
+          Terima
         </Button>,
         <Button
           key="reject"
-          size="sm"
+          size="default"
           variant="destructive"
           onClick={() => handleRejectDelegation(visit)}
           title="Tolak Delegasi"
+          className="font-medium"
         >
-          <UserX className="h-4 w-4" />
+          <UserX className="h-4 w-4 mr-2" />
+          Tolak
         </Button>,
       );
       return <div className="flex gap-2">{buttons}</div>;
@@ -732,42 +737,46 @@ export function VisitManagement({
       buttons.push(
         <Button
           key="approve"
-          size="sm"
+          size="default"
           onClick={() => handleUpdateVisitStatus(visit.id, "approved")}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700 font-medium"
           title="Setujui Pertemuan"
         >
-          <CheckCircle className="h-4 w-4" />
+          <CheckCircle className="h-4 w-4 mr-2" />
+          Setujui
         </Button>,
         <Button
           key="unavailable"
-          size="sm"
+          size="default"
           variant="outline"
           onClick={() => handleMarkUnavailable(visit)}
-          className="border-red-400 text-red-600 hover:bg-red-50"
+          className="border-red-400 text-red-600 hover:bg-red-50 font-medium"
           title="Tidak Tersedia"
         >
-          <Ban className="h-4 w-4" />
+          <Ban className="h-4 w-4 mr-2" />
+          Tolak
         </Button>,
         <Button
           key="wait"
-          size="sm"
+          size="default"
           variant="outline"
           onClick={() => handleOpenWaitDialog(visit)}
-          className="border-amber-400 text-amber-600 hover:bg-amber-50"
+          className="border-amber-400 text-amber-600 hover:bg-amber-50 font-medium hidden md:inline-flex"
           title="Minta Tunggu"
         >
-          <Timer className="h-4 w-4" />
+          <Timer className="h-4 w-4 mr-2" />
+          Tunda
         </Button>,
         <Button
           key="forward"
-          size="sm"
+          size="default"
           variant="outline"
           onClick={() => handleOpenForwardDialog(visit)}
-          className="border-blue-600 text-blue-600 hover:bg-blue-50"
+          className="border-blue-600 text-blue-600 hover:bg-blue-50 font-medium hidden md:inline-flex"
           title="Serahkan ke Koordinator"
         >
-          <Forward className="h-4 w-4" />
+          <Forward className="h-4 w-4 mr-2" />
+          Alihkan
         </Button>,
       );
     }
@@ -777,21 +786,24 @@ export function VisitManagement({
       buttons.push(
         <Button
           key="accept-delegation"
-          size="sm"
+          size="default"
           onClick={() => handleDelegationResponse(visit, "approve")}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700 font-medium"
           title="Terima Delegasi"
         >
-          <UserCheck className="h-4 w-4" />
+          <UserCheck className="h-4 w-4 mr-2" />
+          Terima
         </Button>,
         <Button
           key="reject-delegation"
-          size="sm"
+          size="default"
           variant="destructive"
           onClick={() => handleDelegationResponse(visit, "reject")}
           title="Tolak Delegasi"
+          className="font-medium"
         >
-          <UserX className="h-4 w-4" />
+          <UserX className="h-4 w-4 mr-2" />
+          Tolak
         </Button>,
       );
       return <div className="flex gap-2">{buttons}</div>;
@@ -802,13 +814,13 @@ export function VisitManagement({
       buttons.push(
         <Button
           key="review-time"
-          size="sm"
+          size="default"
           onClick={() => handleOpenTimeNegotiationReview(visit)}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-purple-600 hover:bg-purple-700 font-medium"
           title="Tinjau Usulan Waktu"
         >
-          <Clock className="h-4 w-4 mr-1" />
-          Tinjau
+          <Clock className="h-4 w-4 mr-2" />
+          Tinjau Waktu
         </Button>,
       );
       return <div className="flex gap-2">{buttons}</div>;
@@ -819,13 +831,13 @@ export function VisitManagement({
       buttons.push(
         <Button
           key="available"
-          size="sm"
+          size="default"
           onClick={() => handleMarkAvailable(visit)}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700 font-medium"
           title="Saya Tersedia — beritahu siswa"
         >
-          <CheckCircle className="h-4 w-4 mr-1" />
-          Saya Tersedia
+          <CheckCircle className="h-4 w-4 mr-2" />
+          Tandai Tersedia
         </Button>,
       );
     }
@@ -837,12 +849,13 @@ export function VisitManagement({
         buttons.push(
           <Button
             key="delegate"
-            size="sm"
+            size="default"
             onClick={() => handleOpenDelegateDialog(visit)}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 hover:bg-indigo-700 font-medium"
             title="Delegasikan ke Guru Lain"
           >
-            <ArrowRightLeft className="h-4 w-4" />
+            <ArrowRightLeft className="h-4 w-4 mr-2" />
+            Alihkan Guru
           </Button>,
         );
       }
@@ -856,13 +869,14 @@ export function VisitManagement({
       buttons.push(
         <Button
           key="complete"
-          size="sm"
+          size="default"
           variant="outline"
           onClick={() => handleUpdateVisitStatus(visit.id, "completed")}
-          className="border-green-600 text-green-600 hover:bg-green-50"
+          className="border-green-600 text-green-600 hover:bg-green-50 font-medium"
           title="Tandai Selesai"
         >
-          Selesai
+          <CheckCircle className="h-4 w-4 mr-2" />
+          Selesaikan
         </Button>,
       );
     }
@@ -872,12 +886,14 @@ export function VisitManagement({
       buttons.push(
         <Button
           key="delete"
-          size="sm"
+          size="default"
           variant="destructive"
           onClick={() => handleDeleteClick(visit)}
           title="Hapus Data"
+          className="font-medium"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-4 w-4 mr-2" />
+          Hapus
         </Button>,
       );
     }
@@ -922,33 +938,32 @@ export function VisitManagement({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card>
-        <CardHeader>
+      <Card className="shadow-lg border-slate-200">
+        <CardHeader className="bg-slate-50 border-b border-slate-100 rounded-t-xl pb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <CardTitle>Data Kunjungan Murid</CardTitle>
-              <CardDescription>
-                Daftar murid yang akan atau sudah berkunjung ke BK
+              <CardTitle className="text-2xl font-bold text-slate-800">Daftar Kunjungan Murid</CardTitle>
+              <CardDescription className="text-base text-slate-600 mt-1">
+                Kelola jadwal pertemuan dan riwayat kunjungan murid Anda
               </CardDescription>
             </div>
 
             {/* Filter dan Search */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <Input
-                placeholder="Cari nama atau kelas..."
+                placeholder="🔍 Cari nama murid atau kelas..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-64"
+                className="w-full sm:w-72 h-11 text-base bg-white"
               />
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Filter Status" />
+                <SelectTrigger className="w-full sm:w-48 h-11 bg-white text-base">
+                  <SelectValue placeholder="Semua Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="pending">Menunggu Anda</SelectItem>
                   <SelectItem value="approved">Disetujui</SelectItem>
-                  <SelectItem value="forwarded">Diserahkan</SelectItem>
                   <SelectItem value="completed">Selesai</SelectItem>
                   <SelectItem value="cancelled">Dibatalkan</SelectItem>
                 </SelectContent>
@@ -956,51 +971,51 @@ export function VisitManagement({
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {/* Statistics Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div className="bg-yellow-50 p-5 rounded-xl border border-yellow-200 shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="text-sm text-yellow-700">Pending</span>
+                <Clock className="h-5 w-5 text-yellow-600" />
+                <span className="font-semibold text-yellow-800">Menunggu Anda</span>
               </div>
-              <p className="text-2xl font-bold text-yellow-600 mt-2">
+              <p className="text-3xl font-black text-yellow-600 mt-3">
                 {visits.filter((v) => v.status === "pending").length}
               </p>
             </div>
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2">
-                <Forward className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-700">Diserahkan</span>
+                <Forward className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold text-blue-800">Dialihkan</span>
               </div>
-              <p className="text-2xl font-bold text-blue-600 mt-2">
+              <p className="text-3xl font-black text-blue-600 mt-3">
                 {visits.filter((v) => v.status === "forwarded").length}
               </p>
             </div>
-            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+            <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-200 shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-indigo-600" />
-                <span className="text-sm text-indigo-700">Disetujui</span>
+                <CheckCircle className="h-5 w-5 text-indigo-600" />
+                <span className="font-semibold text-indigo-800">Disetujui</span>
               </div>
-              <p className="text-2xl font-bold text-indigo-600 mt-2">
+              <p className="text-3xl font-black text-indigo-600 mt-3">
                 {visits.filter((v) => v.status === "approved").length}
               </p>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="bg-green-50 p-5 rounded-xl border border-green-200 shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm text-green-700">Selesai</span>
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <span className="font-semibold text-green-800">Selesai</span>
               </div>
-              <p className="text-2xl font-bold text-green-600 mt-2">
+              <p className="text-3xl font-black text-green-600 mt-3">
                 {visits.filter((v) => v.status === "completed").length}
               </p>
             </div>
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+            <div className="bg-red-50 p-5 rounded-xl border border-red-200 shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-red-600" />
-                <span className="text-sm text-red-700">Dibatalkan</span>
+                <XCircle className="h-5 w-5 text-red-600" />
+                <span className="font-semibold text-red-800">Dibatalkan</span>
               </div>
-              <p className="text-2xl font-bold text-red-600 mt-2">
+              <p className="text-3xl font-black text-red-600 mt-3">
                 {visits.filter((v) => v.status === "cancelled").length}
               </p>
             </div>
@@ -1021,113 +1036,122 @@ export function VisitManagement({
 
               if (forwardedVisits.length > 0)
                 return (
-                  <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <h3 className="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                      <ArrowRightLeft className="h-5 w-5" />
-                      Panel Delegasi Koordinator
+                  <div className="mb-8 p-5 bg-indigo-50 rounded-xl border border-indigo-200 shadow-sm">
+                    <h3 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                      <ArrowRightLeft className="h-6 w-6" />
+                      Tugas Koordinator: Data yang Dialihkan ke Anda
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      <div className="bg-white p-3 rounded-lg border">
-                        <p className="text-sm text-slate-600">
-                          Total Diserahkan
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col justify-center items-center">
+                        <p className="text-sm font-medium text-slate-500">
+                          Total Dialihkan
                         </p>
-                        <p className="text-xl font-bold text-indigo-600">
+                        <p className="text-3xl font-black text-indigo-600 mt-1">
                           {forwardedVisits.length}
                         </p>
                       </div>
-                      <div className="bg-white p-3 rounded-lg border">
-                        <p className="text-sm text-slate-600">
-                          Menunggu Delegasi
+                      <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col justify-center items-center">
+                        <p className="text-sm font-medium text-slate-500">
+                          Perlu Anda Pilihkan Guru
                         </p>
-                        <p className="text-xl font-bold text-orange-600">
+                        <p className="text-3xl font-black text-orange-600 mt-1">
                           {awaitingDelegation.length}
                         </p>
                       </div>
-                      <div className="bg-white p-3 rounded-lg border">
-                        <p className="text-sm text-slate-600">
-                          Menunggu Persetujuan Guru
+                      <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col justify-center items-center">
+                        <p className="text-sm font-medium text-slate-500 text-center">
+                          Menunggu Jawaban Guru Tujuan
                         </p>
-                        <p className="text-xl font-bold text-amber-600">
+                        <p className="text-3xl font-black text-amber-600 mt-1">
                           {pendingAcceptance.length}
                         </p>
                       </div>
                     </div>
+                    
                     {awaitingDelegation.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-indigo-700">
-                          Perlu didelegasikan:
+                      <div className="space-y-3 mt-6">
+                        <p className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">
+                          Segera Pilihkan Guru Baru Untuk:
                         </p>
                         {awaitingDelegation.map((v) => (
                           <div
                             key={v.id}
-                            className="flex items-center justify-between bg-white p-3 rounded-lg border"
+                            className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-lg border shadow-sm gap-4"
                           >
                             <div className="flex-1">
-                              <span className="font-medium text-sm">
-                                {v.studentName}
-                              </span>
-                              <span className="text-slate-500 text-sm ml-2">
-                                ({typeof v.class === 'object' ? (v.class as any).name : v.class})
-                              </span>
-                              <span className="text-slate-400 text-xs ml-2">
-                                — {v.reason.substring(0, 60)}
-                                {v.reason.length > 60 ? "..." : ""}
-                              </span>
-                              {v.targetTeacher && (
-                                <span className="text-xs text-slate-400 ml-2">
-                                  dari: {v.targetTeacher.name}
-                                </span>
-                              )}
-                              {v.notes && (
-                                <p className="text-xs text-orange-600 mt-1">
-                                  Alasan penyerahan:{" "}
-                                  {v.forwardReason || v.notes}
-                                </p>
-                              )}
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-bold text-lg text-slate-800">
+                                    {v.studentName}
+                                    </span>
+                                    <Badge variant="secondary" className="text-xs">
+                                    {typeof v.class === 'object' ? (v.class as any).name : v.class}
+                                    </Badge>
+                                </div>
+                              
+                              <p className="text-sm text-slate-700 bg-slate-50 p-2 inline-block rounded mt-1 border border-slate-100">
+                                Keperluan: {v.reason}
+                              </p>
+                              
+                              <div className="mt-2 flex flex-col gap-1">
+                                {v.targetTeacher && (
+                                    <span className="text-sm text-slate-600 font-medium flex items-center gap-1">
+                                    <Ban className="w-3 h-3 text-red-500" /> Guru sebelumnya ({v.targetTeacher.name}) tidak bisa.
+                                    </span>
+                                )}
+                                {v.notes && (
+                                    <span className="text-sm text-red-600 font-medium">
+                                    Alasan: "{v.forwardReason || v.notes}"
+                                    </span>
+                                )}
+                              </div>
                             </div>
                             <Button
-                              size="sm"
+                              size="lg"
                               onClick={() => handleOpenDelegateDialog(v)}
-                              className="bg-indigo-600 hover:bg-indigo-700 ml-2"
+                              className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto text-base shadow-sm"
                             >
-                              <ArrowRightLeft className="h-4 w-4 mr-1" />
-                              Delegasikan
+                              <ArrowRightLeft className="h-5 w-5 mr-2" />
+                              Pilih Guru Baru
                             </Button>
                           </div>
                         ))}
                       </div>
                     )}
+
                     {pendingAcceptance.length > 0 && (
-                      <div className="space-y-2 mt-3">
-                        <p className="text-sm font-medium text-amber-700">
-                          Menunggu persetujuan guru:
+                      <div className="space-y-3 mt-6">
+                        <p className="text-base font-bold text-amber-800 border-b border-amber-200 pb-2">
+                          Menunggu Jawaban dari Guru yang Anda Tunjuk:
                         </p>
                         {pendingAcceptance.map((v) => (
                           <div
                             key={v.id}
-                            className="flex items-center justify-between bg-white p-3 rounded-lg border"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-lg border border-amber-100 gap-3"
                           >
                             <div className="flex-1">
-                              <span className="font-medium text-sm">
-                                {v.studentName}
-                              </span>
-                              <span className="text-slate-500 text-sm ml-2">
-                                ({typeof v.class === 'object' ? (v.class as any).name : v.class})
-                              </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-base text-slate-800">
+                                        {v.studentName}
+                                    </span>
+                                    <span className="text-slate-500 text-sm">
+                                        ({typeof v.class === 'object' ? (v.class as any).name : v.class})
+                                    </span>
+                                </div>
+                              
                               {v.delegatedToTeacher && (
-                                <Badge
-                                  variant="outline"
-                                  className="ml-2 text-xs bg-amber-50 text-amber-700 border-amber-200"
-                                >
-                                  Didelegasikan ke {v.delegatedToTeacher.name}
-                                </Badge>
+                                <div className="mt-2 flex items-center text-sm">
+                                  <span className="text-slate-600 mr-2">Sudah dialihkan ke:</span>
+                                  <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-semibold hover:bg-amber-100">
+                                    {v.delegatedToTeacher.name}
+                                  </Badge>
+                                </div>
                               )}
                             </div>
                             <Badge
                               variant="outline"
-                              className="text-xs bg-yellow-50 text-yellow-700"
+                              className="text-sm bg-yellow-50 text-yellow-700 w-fit h-fit px-3 py-1"
                             >
-                              Menunggu
+                              <Timer className="w-3 h-3 mr-1" /> Sedang Menunggu Jawaban
                             </Badge>
                           </div>
                         ))}
@@ -1144,69 +1168,67 @@ export function VisitManagement({
               const delegatedToMe = visits.filter((v) => isDelegatedToMe(v));
               if (delegatedToMe.length > 0)
                 return (
-                  <div className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                    <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-                      <UserCheck className="h-5 w-5" />
-                      Delegasi Masuk — Perlu Persetujuan Anda
+                  <div className="mb-8 p-5 bg-amber-50 rounded-xl border border-amber-200 shadow-sm">
+                    <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
+                      <UserCheck className="h-6 w-6" />
+                      Tugas Baru: Delegasi dari Guru Lain
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {delegatedToMe.map((v) => (
                         <div
                           key={v.id}
-                          className="flex items-center justify-between bg-white p-3 rounded-lg border"
+                          className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-lg border border-amber-100 shadow-sm gap-4"
                         >
                           <div className="flex-1">
-                            <span className="font-medium text-sm">
-                              {v.studentName}
-                            </span>
-                            <span className="text-slate-500 text-sm ml-2">
-                              ({typeof v.class === 'object' ? (v.class as any).name : v.class})
-                            </span>
-                            <p className="text-xs text-slate-500 mt-1">
-                              {v.reason.substring(0, 80)}
-                              {v.reason.length > 80 ? "..." : ""}
-                            </p>
-                            {v.targetTeacher && (
-                              <p className="text-xs text-slate-400 mt-1">
-                                Guru asal: {v.targetTeacher.name}
-                              </p>
-                            )}
-                            {v.delegationNotes && (
-                              <p className="text-xs text-indigo-600 mt-1">
-                                Catatan koordinator: {v.delegationNotes}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(v.visitDate).toLocaleDateString(
-                                "id-ID",
-                                {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                },
-                              )}
-                              <Clock className="h-3 w-3 ml-1" />
-                              {v.visitTime}
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="font-bold text-lg text-slate-800">
+                                {v.studentName}
+                                </span>
+                                <Badge variant="secondary" className="text-xs">
+                                {typeof v.class === 'object' ? (v.class as any).name : v.class}
+                                </Badge>
                             </div>
+                            <p className="text-sm text-slate-700 font-medium bg-slate-50 p-2 rounded inline-block mt-1">
+                              "{v.reason}"
+                            </p>
+                            <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                {v.targetTeacher && (
+                                <p className="text-sm text-slate-600 flex items-center gap-1">
+                                    <ArrowRightLeft className="h-4 w-4" /> Dari: <span className="font-semibold">{v.targetTeacher.name}</span>
+                                </p>
+                                )}
+                                <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(v.visitDate).toLocaleDateString(
+                                    "id-ID",
+                                    { day: "numeric", month: "long", year: "numeric" }
+                                )}
+                                <Clock className="h-4 w-4 ml-1" />
+                                {v.visitTime} WIB
+                                </div>
+                            </div>
+                            {v.delegationNotes && (
+                              <p className="text-sm text-indigo-700 bg-indigo-50 p-2 rounded mt-2 border border-indigo-100">
+                                <strong>Catatan Koordinator:</strong> {v.delegationNotes}
+                              </p>
+                            )}
                           </div>
-                          <div className="flex gap-2 ml-2">
+                          <div className="flex flex-col sm:flex-row gap-2 md:w-auto w-full">
                             <Button
-                              size="sm"
+                              size="lg"
                               onClick={() => handleAcceptDelegation(v)}
-                              className="bg-green-600 hover:bg-green-700"
-                              title="Terima & Setujui"
+                              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto text-base"
                             >
-                              <UserCheck className="h-4 w-4 mr-1" />
-                              Terima
+                              <UserCheck className="h-5 w-5 mr-2" />
+                              Terima Tugas Ini
                             </Button>
                             <Button
-                              size="sm"
-                              variant="destructive"
+                              size="lg"
+                              variant="outline"
                               onClick={() => handleRejectDelegation(v)}
-                              title="Tolak Delegasi"
+                              className="border-red-200 text-red-700 hover:bg-red-50 w-full sm:w-auto text-base"
                             >
-                              <UserX className="h-4 w-4 mr-1" />
+                              <UserX className="h-5 w-5 mr-2" />
                               Tolak
                             </Button>
                           </div>
@@ -1223,55 +1245,55 @@ export function VisitManagement({
             const studentDelegatedToMe = visits.filter((v) => isStudentDelegatedToMe(v));
             if (studentDelegatedToMe.length > 0)
               return (
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h3 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                    <UserCheck className="h-5 w-5" />
-                    Delegasi dari Siswa — Perlu Persetujuan Anda
+                <div className="mb-8 p-5 bg-blue-50 rounded-xl border border-blue-200 shadow-sm">
+                  <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                    <UserCheck className="h-6 w-6" />
+                    Tugas Baru: Permintaan Langsung dari Siswa
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {studentDelegatedToMe.map((v) => (
                       <div
                         key={v.id}
-                        className="flex items-center justify-between bg-white p-3 rounded-lg border"
+                        className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-lg border border-blue-100 shadow-sm gap-4"
                       >
                         <div className="flex-1">
-                          <span className="font-medium text-sm">
-                            {v.studentName}
-                          </span>
-                          <span className="text-slate-500 text-sm ml-2">
-                            ({typeof v.class === 'object' ? (v.class as any).name : v.class})
-                          </span>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {v.reason.substring(0, 80)}
-                            {v.reason.length > 80 ? "..." : ""}
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="font-bold text-lg text-slate-800">
+                                {v.studentName}
+                                </span>
+                                <Badge variant="secondary" className="text-xs">
+                                {typeof v.class === 'object' ? (v.class as any).name : v.class}
+                                </Badge>
+                            </div>
+                          <p className="text-sm text-slate-700 font-medium bg-slate-50 p-2 rounded inline-block mt-1">
+                            "{v.reason}"
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                            <Calendar className="h-3 w-3" />
+                          <div className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded w-fit">
+                            <Calendar className="h-4 w-4" />
                             {new Date(v.visitDate).toLocaleDateString("id-ID", {
-                              day: "2-digit", month: "short", year: "numeric",
+                              day: "numeric", month: "long", year: "numeric",
                             })}
-                            <Clock className="h-3 w-3 ml-1" />
-                            {v.visitTime}
+                            <Clock className="h-4 w-4 ml-2" />
+                            {v.visitTime} WIB
                           </div>
                         </div>
-                        <div className="flex gap-2 ml-2">
+                        <div className="flex flex-col sm:flex-row gap-2 md:w-auto w-full">
                           <Button
-                            size="sm"
+                            size="lg"
                             onClick={() => handleDelegationResponse(v, "approve")}
-                            className="bg-green-600 hover:bg-green-700"
-                            title="Terima & Setujui"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto text-base"
                           >
-                            <UserCheck className="h-4 w-4 mr-1" />
-                            Terima
+                            <UserCheck className="h-5 w-5 mr-2" />
+                            Terima Jadwal
                           </Button>
                           <Button
-                            size="sm"
-                            variant="destructive"
+                            size="lg"
+                            variant="outline"
                             onClick={() => handleDelegationResponse(v, "reject")}
-                            title="Tolak Delegasi"
+                            className="border-red-200 text-red-700 hover:bg-red-50 w-full sm:w-auto text-base"
                           >
-                            <UserX className="h-4 w-4 mr-1" />
-                            Tolak
+                            <UserX className="h-5 w-5 mr-2" />
+                            Tolak Permintaan
                           </Button>
                         </div>
                       </div>
@@ -1289,47 +1311,52 @@ export function VisitManagement({
             );
             if (timeNegotiations.length > 0)
               return (
-                <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Usulan Waktu Baru dari Siswa
+                <div className="mb-8 p-5 bg-purple-50 rounded-xl border border-purple-200 shadow-sm">
+                  <h3 className="text-lg font-bold text-purple-900 mb-4 flex items-center gap-2">
+                    <Clock className="h-6 w-6" />
+                    Tugas Baru: Ada Usulan Waktu Baru dari Siswa
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {timeNegotiations.map((v) => (
                       <div
                         key={v.id}
-                        className="flex items-center justify-between bg-white p-3 rounded-lg border"
+                        className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-lg border border-purple-100 shadow-sm gap-4"
                       >
                         <div className="flex-1">
-                          <span className="font-medium text-sm">
-                            {v.studentName}
-                          </span>
-                          <span className="text-slate-500 text-sm ml-2">
-                            ({typeof v.class === 'object' ? (v.class as any).name : v.class})
-                          </span>
-                          <div className="flex items-center gap-2 text-xs mt-1">
-                            <span className="text-slate-400 line-through">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="font-bold text-lg text-slate-800">
+                                {v.studentName}
+                                </span>
+                                <Badge variant="secondary" className="text-xs">
+                                {typeof v.class === 'object' ? (v.class as any).name : v.class}
+                                </Badge>
+                            </div>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 bg-purple-50/50 p-2 rounded-lg border border-purple-100 mt-2">
+                            <div className="flex items-center gap-1.5 text-sm text-slate-500 line-through">
+                              <Calendar className="h-4 w-4" />
                               {new Date(v.visitDate).toLocaleDateString("id-ID", {
-                                day: "2-digit", month: "short",
+                                day: "numeric", month: "short", year: "numeric"
                               })}{" "}{v.visitTime}
-                            </span>
-                            <span className="text-purple-700 font-medium">
-                              → {v.proposedVisitDate
+                            </div>
+                            <span className="hidden sm:inline text-purple-400">➔</span>
+                            <div className="flex items-center gap-1.5 text-base font-bold text-purple-700 bg-white px-2 py-1 rounded shadow-sm border border-purple-100">
+                                <Clock className="h-4 w-4" />
+                              {v.proposedVisitDate
                                 ? new Date(v.proposedVisitDate).toLocaleDateString("id-ID", {
-                                    day: "2-digit", month: "short",
+                                    day: "numeric", month: "long", year: "numeric"
                                   })
                                 : "-"}{" "}
-                              {v.proposedVisitTime || "-"} WIB
-                            </span>
+                              pukul {v.proposedVisitTime || "-"} WIB
+                            </div>
                           </div>
                         </div>
                         <Button
-                          size="sm"
+                          size="lg"
                           onClick={() => handleOpenTimeNegotiationReview(v)}
-                          className="bg-purple-600 hover:bg-purple-700 ml-2"
+                          className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto text-base shadow-sm"
                         >
-                          <Clock className="h-4 w-4 mr-1" />
-                          Tinjau
+                          <Clock className="h-5 w-5 mr-2" />
+                          Tinjau Waktu Ini
                         </Button>
                       </div>
                     ))}
@@ -1344,14 +1371,11 @@ export function VisitManagement({
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="font-semibold">Nama Murid</TableHead>
-                  <TableHead className="font-semibold">Kelas</TableHead>
-                  <TableHead className="font-semibold">Guru BK</TableHead>
-                  <TableHead className="font-semibold">Tanggal</TableHead>
-                  <TableHead className="font-semibold">Waktu</TableHead>
-                  <TableHead className="font-semibold">Keperluan</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold">Aksi</TableHead>
+                  <TableHead className="font-semibold text-base">Nama Murid</TableHead>
+                  <TableHead className="font-semibold text-base">Jadwal</TableHead>
+                  <TableHead className="font-semibold text-base">Keperluan</TableHead>
+                  <TableHead className="font-semibold text-base">Status</TableHead>
+                  <TableHead className="font-semibold text-base">Tindakan</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1437,250 +1461,242 @@ export function VisitManagement({
         </CardContent>
       </Card>
 
-      {/* Dialog untuk detail kunjungan */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Detail Kunjungan</DialogTitle>
-            <DialogDescription>
-              Informasi lengkap tentang kunjungan murid
+        <DialogContent className="max-w-3xl rounded-2xl overflow-hidden p-0 border-0 shadow-2xl">
+          <DialogHeader className="bg-slate-50 px-6 py-5 border-b border-slate-100">
+            <DialogTitle className="text-xl font-bold text-slate-800">Detail Kunjungan</DialogTitle>
+            <DialogDescription className="text-slate-500">
+              Informasi lengkap tentang kunjungan murid dan riwayat penanganan
             </DialogDescription>
           </DialogHeader>
           {selectedVisit && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600">
-                    Nama Murid
-                  </Label>
-                  <p className="text-base font-semibold">
-                    {selectedVisit.studentName}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600">
-                    Kelas
-                  </Label>
-                  <p className="text-base font-semibold">
-                    {selectedVisit.class}
-                  </p>
-                </div>
-              </div>
+            <div className="p-6 max-h-[75vh] overflow-y-auto custom-scrollbar bg-white">
+              
+              <div className="flex flex-col md:flex-row gap-6 mb-8">
+                  {/* Left Column: Student Info */}
+                  <div className="flex-1 space-y-4">
+                      <div className="flex items-center gap-4">
+                          <Avatar className="h-16 w-16 border-2 border-slate-100">
+                              <AvatarFallback className="bg-blue-50 text-blue-600 text-xl font-bold">
+                                  {(selectedVisit.studentName || "??").substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                          </Avatar>
+                          <div>
+                              <h3 className="text-lg font-bold text-slate-900">{selectedVisit.studentName}</h3>
+                              <Badge variant="secondary" className="mt-1 font-medium bg-slate-100 text-slate-600 hover:bg-slate-100 border-0">{typeof selectedVisit.class === 'object' ? (selectedVisit.class as any).name : selectedVisit.class}</Badge>
+                          </div>
+                      </div>
 
-              {(selectedVisit.email || selectedVisit.phone) && (
-                <div className="grid grid-cols-2 gap-4">
-                  {selectedVisit.email && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-slate-600">
-                        Email
-                      </Label>
-                      <p className="text-sm">{selectedVisit.email}</p>
-                    </div>
-                  )}
-                  {selectedVisit.phone && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-slate-600">
-                        No. Telepon
-                      </Label>
-                      <p className="text-sm">{selectedVisit.phone}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <Separator />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600">
-                    Tanggal Kunjungan
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    <p className="text-base">
-                      {new Date(selectedVisit.visitDate).toLocaleDateString(
-                        "id-ID",
-                        {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        },
+                      {(selectedVisit.email || selectedVisit.phone) && (
+                        <div className="grid grid-cols-1 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                          {selectedVisit.email && (
+                            <div>
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Email</p>
+                              <p className="text-sm font-medium text-slate-700">{selectedVisit.email}</p>
+                            </div>
+                          )}
+                          {selectedVisit.phone && (
+                            <div>
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">No. Telepon</p>
+                              <p className="text-sm font-medium text-slate-700">{selectedVisit.phone}</p>
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </p>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600">
-                    Waktu
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-slate-400" />
-                    <p className="text-base">{selectedVisit.visitTime} WIB</p>
+
+                  {/* Right Column: Visit Info */}
+                  <div className="flex-1 space-y-4">
+                      <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-4">
+                          <div>
+                              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1.5">Jadwal Pertemuan</p>
+                              <div className="flex flex-col gap-1.5">
+                                  <div className="flex items-center text-slate-700 font-medium bg-white px-3 py-2 rounded-lg border border-slate-200/60 shadow-sm">
+                                      <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+                                      {new Date(selectedVisit.visitDate).toLocaleDateString("id-ID", {
+                                          weekday: "long", day: "numeric", month: "long", year: "numeric",
+                                      })}
+                                  </div>
+                                  <div className="flex items-center text-slate-700 font-medium bg-white px-3 py-2 rounded-lg border border-slate-200/60 shadow-sm w-fit">
+                                      <Clock className="h-4 w-4 mr-2 text-blue-500" />
+                                      {selectedVisit.visitTime} WIB
+                                  </div>
+                              </div>
+                          </div>
+                          
+                          <div>
+                              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1.5">Status Saat Ini</p>
+                              <div>{getStatusBadge(selectedVisit.status)}</div>
+                          </div>
+
+                          {selectedVisit.targetTeacher && (
+                              <div>
+                                  <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1.5">Guru Tujuan</p>
+                                  <div className="flex items-center gap-2">
+                                      <UserCheck className="w-4 h-4 text-slate-400" />
+                                      <span className="font-medium text-slate-700">{selectedVisit.targetTeacher.name}</span>
+                                  </div>
+                              </div>
+                          )}
+                      </div>
                   </div>
-                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-600">
-                  Status
-                </Label>
-                <div>{getStatusBadge(selectedVisit.status)}</div>
-              </div>
-
-              {selectedVisit.targetTeacher && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600">
-                    Guru BK yang Dipilih
-                  </Label>
-                  <p className="text-base font-semibold">
-                    {selectedVisit.targetTeacher.name}
-                  </p>
-                </div>
-              )}
-
-              {/* Delegation info in detail */}
+              {/* Delegation Info */}
               {selectedVisit.forwardedToCoordinator && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600">
-                    Info Delegasi
-                  </Label>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 space-y-2">
-                    <p className="text-sm text-blue-800">
-                      <strong>Status:</strong> Diserahkan ke koordinator
-                    </p>
+                <div className="mb-8 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                  <h4 className="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                      <ArrowRightLeft className="w-4 h-4" /> Riwayat Pengalihan Tugas
+                  </h4>
+                  <div className="space-y-3 bg-white p-3 rounded-lg border border-indigo-50">
+                    <div className="flex justify-between items-start">
+                        <span className="text-sm text-slate-500 font-medium min-w-[120px]">Status</span>
+                        <span className="text-sm font-semibold text-slate-800 text-right">Diserahkan ke koordinator</span>
+                    </div>
                     {selectedVisit.forwardReason && (
-                      <p className="text-sm text-blue-800">
-                        <strong>Alasan penyerahan:</strong>{" "}
-                        {selectedVisit.forwardReason}
-                      </p>
+                      <div className="flex justify-between items-start">
+                        <span className="text-sm text-slate-500 font-medium min-w-[120px]">Alasan Penyerahan</span>
+                        <span className="text-sm font-medium text-red-600 bg-red-50 px-2 py-1 rounded text-right">{selectedVisit.forwardReason}</span>
+                      </div>
                     )}
                     {selectedVisit.delegatedToTeacher && (
-                      <p className="text-sm text-blue-800">
-                        <strong>Didelegasikan ke:</strong>{" "}
-                        {selectedVisit.delegatedToTeacher.name}
-                        {selectedVisit.delegationStatus && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {selectedVisit.delegationStatus === "pending"
-                              ? "Menunggu Persetujuan"
-                              : selectedVisit.delegationStatus === "accepted"
-                                ? "Diterima"
-                                : "Ditolak"}
-                          </Badge>
-                        )}
-                      </p>
+                      <div className="flex justify-between items-start pt-2 border-t border-slate-100 mt-2">
+                        <span className="text-sm text-slate-500 font-medium min-w-[120px]">Dialihkan Ke</span>
+                        <div className="flex flex-col items-end gap-1">
+                            <span className="text-sm font-bold text-indigo-700">{selectedVisit.delegatedToTeacher.name}</span>
+                            {selectedVisit.delegationStatus && (
+                                <Badge variant="outline" className={`text-xs ${selectedVisit.delegationStatus === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : selectedVisit.delegationStatus === 'accepted' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
+                                    {selectedVisit.delegationStatus === "pending" ? "Menunggu Persetujuan" : selectedVisit.delegationStatus === "accepted" ? "Tugas Diterima" : "Tugas Ditolak"}
+                                </Badge>
+                            )}
+                        </div>
+                      </div>
                     )}
                     {selectedVisit.delegationNotes && (
-                      <p className="text-sm text-blue-800">
-                        <strong>Catatan delegasi:</strong>{" "}
-                        {selectedVisit.delegationNotes}
-                      </p>
+                      <div className="flex justify-between items-start">
+                        <span className="text-sm text-slate-500 font-medium min-w-[120px]">Pesan Koordinator</span>
+                        <span className="text-sm font-medium text-slate-700 text-right bg-slate-50 p-2 rounded">{selectedVisit.delegationNotes}</span>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              <Separator />
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-600">
-                  Keperluan/Tujuan Kunjungan
+              {/* Reason */}
+              <div className="mb-8">
+                <Label className="text-base font-bold text-slate-800 mb-2 block">
+                  Keperluan / Tujuan Kunjungan
                 </Label>
-                <p className="text-base p-3 bg-slate-50 rounded-lg">
+                <div className="text-base p-4 bg-slate-50/80 rounded-xl border border-slate-100 text-slate-700 leading-relaxed font-medium">
                   {selectedVisit.reason}
-                </p>
+                </div>
               </div>
 
-              <div className="space-y-4">
+              <Separator className="my-8" />
+
+              {/* Timeline */}
+              <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <Label className="text-lg font-semibold text-slate-800">
-                    Timeline Catatan Pertemuan
+                  <Label className="text-xl font-bold text-slate-800">
+                    Riwayat Penanganan
                   </Label>
-                  <Badge variant={selectedVisit.status === "completed" ? "default" : "secondary"}>
-                    {selectedVisit.status === "completed" ? "Selesai" : "Sedang Berlangsung"}
+                  <Badge variant={selectedVisit.status === "completed" ? "default" : "secondary"} className="px-3 py-1 text-sm font-semibold shadow-sm">
+                    {selectedVisit.status === "completed" ? "Sudah Selesai" : "Sedang Berjalan"}
                   </Badge>
                 </div>
                 
-                {/* Timeline Notes */}
                 {selectedVisit.visitNotesTimeline && selectedVisit.visitNotesTimeline.length > 0 ? (
-                  <div className="space-y-4 pl-4 border-l-2 border-slate-200">
+                  <div className="space-y-6 pl-4 border-l-2 border-blue-200 ml-2">
                     {selectedVisit.visitNotesTimeline.map((note, idx) => (
                       <div key={note.id || idx} className="relative">
-                        <div className={`absolute -left-[25px] mt-1 h-3 w-3 rounded-full border-2 ${note.isSolved ? 'bg-green-500 border-green-500' : 'bg-white border-slate-400'}`}></div>
-                        <div className="bg-slate-50 border p-3 rounded-lg mb-2">
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-semibold text-sm">Pertemuan {idx + 1}</span>
-                            <span className="text-xs text-slate-500">
+                        <div className={`absolute -left-[23px] mt-1.5 h-4 w-4 rounded-full border-4 border-white shadow-sm ${note.isSolved ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                        <div className="bg-white border border-slate-200 shadow-sm p-5 rounded-xl transition-all hover:shadow-md">
+                          <div className="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">
+                            <span className="font-bold text-base text-slate-800 flex items-center gap-2">
+                                <FileEdit className="w-4 h-4 text-blue-500" /> Catatan Pertemuan {idx + 1}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
                               {new Date(note.createdAt).toLocaleString("id-ID", {
                                 day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
-                              })}
+                              })} WIB
                             </span>
                           </div>
-                          <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.note}</p>
-                          <div className="mt-2 text-xs font-medium">
-                            Status: <span className={note.isSolved ? "text-green-600" : "text-amber-600"}>{note.isSolved ? "Masalah Selesai (Solved)" : "Belum Selesai"}</span>
+                          <p className="text-base text-slate-700 whitespace-pre-wrap leading-relaxed">{note.note}</p>
+                          <div className="mt-4 flex items-center gap-2">
+                              {note.isSolved ? (
+                                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50"><CheckCircle className="w-3 h-3 mr-1"/> Masalah Terselesaikan</Badge>
+                              ) : (
+                                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50"><Timer className="w-3 h-3 mr-1"/> Belum Selesai</Badge>
+                              )}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center p-4 bg-slate-50 rounded-lg text-slate-500 text-sm italic">
-                    Belum ada catatan pertemuan untuk kunjungan ini.
+                  <div className="text-center p-8 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-slate-400">
+                    <FileEdit className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm font-medium">Belum ada catatan penanganan untuk siswa ini.</p>
                   </div>
                 )}
                 
                 {/* Add new note form */}
                 {selectedVisit.status !== "completed" && (
-                  <div className="mt-6 space-y-3 bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                    <Label htmlFor="newNote" className="font-semibold text-slate-800">Tambah Catatan Pertemuan Baru</Label>
+                  <div className="mt-8 space-y-4 bg-blue-50/30 border border-blue-100 p-6 rounded-2xl shadow-sm">
+                    <Label htmlFor="newNote" className="font-bold text-lg text-blue-900 flex items-center gap-2">
+                        <FileEdit className="w-5 h-5 text-blue-600" />
+                        Tambah Catatan Baru
+                    </Label>
+                    <p className="text-sm text-slate-500 mb-2">Tuliskan hasil pertemuan, perkembangan, atau tindakan selanjutnya.</p>
                     <Textarea
                       id="newNote"
-                      placeholder="Ketik catatan pertemuan kali ini..."
+                      placeholder="Ketik catatan di sini..."
                       value={newMeetingNote}
                       onChange={(e) => setNewMeetingNote(e.target.value)}
-                      rows={4}
-                      className="bg-slate-50"
+                      rows={5}
+                      className="bg-white border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 resize-none text-base p-4"
                     />
-                    <div className="flex items-center space-x-2 mt-2">
+                    <div className="flex items-center space-x-3 mt-4 bg-white p-3 rounded-xl border border-slate-200 w-fit">
                       <input 
                         type="checkbox" 
                         id="isSolved" 
                         checked={isMeetingSolved}
                         onChange={(e) => setIsMeetingSolved(e.target.checked)}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                        className="h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600 cursor-pointer"
                       />
-                      <Label htmlFor="isSolved" className="text-sm font-medium cursor-pointer">
-                        Tandai masalah telah selesai (Solved)
+                      <Label htmlFor="isSolved" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                        Tandai masalah ini sudah selesai (Tutup Kasus)
                       </Label>
                     </div>
                   </div>
                 )}
               </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-600">
-                  Dibuat pada
-                </Label>
-                <p className="text-sm text-slate-500">
-                  {new Date(selectedVisit.createdAt).toLocaleString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
+              
+              <div className="mt-8 pt-4 border-t border-slate-100 text-right">
+                  <p className="text-xs font-medium text-slate-400">
+                      ID Laporan dibuat pada: {new Date(selectedVisit.createdAt).toLocaleString("id-ID", {
+                          day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+                      })} WIB
+                  </p>
               </div>
+
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+          <DialogFooter className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex sm:justify-between items-center">
+            <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="font-semibold text-slate-600 hover:text-slate-900">
               Tutup
             </Button>
             {selectedVisit?.status !== "completed" && (
-              <Button onClick={handleAddMeetingNote} disabled={isAddingNote || !newMeetingNote.trim()}>
-                {isAddingNote ? "Menyimpan..." : "Simpan Catatan Baru"}
+              <Button 
+                onClick={handleAddMeetingNote} 
+                disabled={isAddingNote || !newMeetingNote.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md px-6"
+              >
+                {isAddingNote ? (
+                    <><span className="animate-spin mr-2">⏳</span> Menyimpan...</>
+                ) : (
+                    <><CheckCircle className="w-4 h-4 mr-2" /> Simpan Catatan</>
+                )}
               </Button>
             )}
           </DialogFooter>

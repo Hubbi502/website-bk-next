@@ -179,62 +179,12 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="gap-2 h-11 px-6 ml-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all">
-                    <LogIn className="h-4 w-4" />
-                    Login
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-72 p-3 bg-white border-2 border-gray-100 shadow-2xl"
-                >
-                  <DropdownMenuLabel className="text-base font-bold text-gray-900 mb-2">
-                    Pilih Jenis Login
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-gray-200 mb-2" />
-
-                  <DropdownMenuItem asChild className="p-0 mb-2">
-                    <Link
-                      href="/login"
-                      className="flex items-center gap-4 cursor-pointer p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 hover:border-blue-300 transition-all shadow-sm hover:shadow-md"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
-                        <GraduationCap className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <span className="font-bold text-gray-900 text-base">
-                          Login Guru
-                        </span>
-                        <span className="text-sm text-gray-600 font-medium">
-                          Akses dashboard guru BK
-                        </span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild className="p-0">
-                    <Link
-                      href="/student-login"
-                      className="flex items-center gap-4 cursor-pointer p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-100 hover:from-green-100 hover:to-emerald-200 border-2 border-green-200 hover:border-green-300 transition-all shadow-sm hover:shadow-md"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-green-600 flex items-center justify-center shadow-md">
-                        <User className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <span className="font-bold text-gray-900 text-base">
-                          Login Murid
-                        </span>
-                        <span className="text-sm text-gray-600 font-medium">
-                          Buat jadwal konseling
-                        </span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Link href="/auth">
+                <Button className="gap-2 h-11 px-6 ml-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm transition-all">
+                  <LogIn className="h-4 w-4" />
+                  Login
+                </Button>
+              </Link>
             )}
           </div>
 
@@ -296,64 +246,15 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg"
-                  >
-                    <LogIn className="h-4 w-4 mr-1" />
-                    Login
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-72 p-3 bg-white border-2 border-gray-100 shadow-2xl"
+              <Link href="/auth">
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm"
                 >
-                  <DropdownMenuLabel className="text-base font-bold text-gray-900 mb-2">
-                    Pilih Jenis Login
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-gray-200 mb-2" />
-
-                  <DropdownMenuItem asChild className="p-0 mb-2">
-                    <Link
-                      href="/login"
-                      className="flex items-center gap-4 cursor-pointer p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 hover:border-blue-300 transition-all shadow-sm"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
-                        <GraduationCap className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <span className="font-bold text-gray-900">
-                          Login Guru
-                        </span>
-                        <span className="text-sm text-gray-600 font-medium">
-                          Dashboard guru BK
-                        </span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild className="p-0">
-                    <Link
-                      href="/student-login"
-                      className="flex items-center gap-4 cursor-pointer p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-100 hover:from-green-100 hover:to-emerald-200 border-2 border-green-200 hover:border-green-300 transition-all shadow-sm"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-green-600 flex items-center justify-center shadow-md">
-                        <User className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <span className="font-bold text-gray-900">
-                          Login Murid
-                        </span>
-                        <span className="text-sm text-gray-600 font-medium">
-                          Jadwal konseling
-                        </span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <LogIn className="h-4 w-4 mr-1" />
+                  Login
+                </Button>
+              </Link>
             )}
 
             <DropdownMenu
