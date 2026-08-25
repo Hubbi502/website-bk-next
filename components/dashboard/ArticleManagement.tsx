@@ -395,17 +395,17 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
     <div className="space-y-6 animate-fade-in">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
             <div>
-              <CardTitle>Daftar Artikel</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base sm:text-xl">Daftar Artikel</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Kelola artikel bimbingan dan konseling
               </CardDescription>
             </div>
             <Dialog open={isAddArticleOpen} onOpenChange={setIsAddArticleOpen}>
               <DialogTrigger asChild>
                 <Button
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white w-full xs:w-auto text-xs sm:text-sm"
                   onClick={() => {
                   setEditingArticle(null);
                   setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read", pdfUrl: "", pdfFileName: "" });
@@ -414,7 +414,7 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
                   setPdfFile(null);
                   setPdfFileName("");
                 }}>
-                  <Plus className="h-4 w-4 mr-2 " />
+                  <Plus className="h-4 w-4 mr-2" />
                   Tambah Artikel
                 </Button>
               </DialogTrigger>
@@ -438,10 +438,10 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
                   </DialogDescription>
                 </DialogHeader>
                 
-                <div className="flex-1 overflow-y-auto p-6">
-                  <div className="grid grid-cols-3 gap-8">
+                 <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
                     {/* Left Column */}
-                    <div className="col-span-2 space-y-6">
+                    <div className="col-span-1 lg:col-span-2 space-y-6">
                       <Card className="bg-white">
                         <CardHeader>
                           <CardTitle className="text-gray-800">Konten Utama</CardTitle>
@@ -721,37 +721,39 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
               <p className="text-center text-slate-500 py-8">Belum ada artikel</p>
             ) : (
               articles.map((article) => (
-                <div key={article.id} className="border rounded-lg p-4 flex gap-4 hover:shadow-md transition-shadow">
+                <div key={article.id} className="border rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:gap-4 hover:shadow-md transition-shadow">
                   <img
                     src={article.image}
                     alt={article.title}
-                    className="w-24 h-24 object-cover rounded"
+                    className="w-full sm:w-24 h-40 sm:h-24 object-cover rounded"
                   />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{article.title}</h3>
-                    <p className="text-slate-600 text-sm mt-1 line-clamp-2">{article.excerpt}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm sm:text-lg leading-snug">{article.title}</h3>
+                    <p className="text-slate-600 text-xs sm:text-sm mt-1 line-clamp-2">{article.excerpt}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500">
                       <span>{article.date}</span>
                       <span>•</span>
-                      <span>{article.author}</span>
-                      <span>•</span>
+                      <span className="truncate max-w-[120px]">{article.author}</span>
                       <Badge variant="outline" className="text-xs">{article.category}</Badge>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex sm:flex-col flex-row gap-2 sm:items-end">
                     <Button
                       size="sm"
-                      className="bg-amber-500 hover:bg-amber-600 text-white"
+                      className="bg-amber-500 hover:bg-amber-600 text-white flex-1 sm:flex-none"
                       onClick={() => handleEditArticle(article)}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-4 w-4 sm:mr-0" />
+                      <span className="sm:hidden ml-1">Edit</span>
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
+                      className="flex-1 sm:flex-none"
                       onClick={() => handleDeleteArticle(article.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 sm:mr-0" />
+                      <span className="sm:hidden ml-1">Hapus</span>
                     </Button>
                   </div>
                 </div>

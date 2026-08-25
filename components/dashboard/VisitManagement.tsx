@@ -729,7 +729,7 @@ export function VisitManagement({
           Tolak
         </Button>,
       );
-      return <div className="flex gap-2">{buttons}</div>;
+      return <div className="flex flex-wrap gap-1.5">{buttons}</div>;
     }
 
     // CASE 2: Pending visit targeted to me (regular teacher)
@@ -806,7 +806,7 @@ export function VisitManagement({
           Tolak
         </Button>,
       );
-      return <div className="flex gap-2">{buttons}</div>;
+      return <div className="flex flex-wrap gap-1.5">{buttons}</div>;
     }
 
     // CASE 2c: Negosiasi waktu dari siswa (PENDING_TIME_NEGOTIATION)
@@ -823,7 +823,7 @@ export function VisitManagement({
           Tinjau Waktu
         </Button>,
       );
-      return <div className="flex gap-2">{buttons}</div>;
+      return <div className="flex flex-wrap gap-1.5">{buttons}</div>;
     }
 
     // CASE 2d: WAITING visit — guru bisa tandai tersedia
@@ -898,7 +898,7 @@ export function VisitManagement({
       );
     }
 
-    return <div className="flex gap-2">{buttons}</div>;
+    return <div className="flex flex-wrap gap-1.5">{buttons}</div>;
   };
 
   // Render delegation info badge for table
@@ -939,25 +939,25 @@ export function VisitManagement({
   return (
     <div className="space-y-6 animate-fade-in">
       <Card className="shadow-lg border-slate-200">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 rounded-t-xl pb-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <CardHeader className="bg-slate-50 border-b border-slate-100 rounded-t-xl pb-4 sm:pb-6">
+          <div className="flex flex-col gap-3">
             <div>
-              <CardTitle className="text-2xl font-bold text-slate-800">Daftar Kunjungan Murid</CardTitle>
-              <CardDescription className="text-base text-slate-600 mt-1">
+              <CardTitle className="text-base sm:text-2xl font-bold text-slate-800">Daftar Kunjungan Murid</CardTitle>
+              <CardDescription className="text-xs sm:text-base text-slate-600 mt-1">
                 Kelola jadwal pertemuan dan riwayat kunjungan murid Anda
               </CardDescription>
             </div>
 
             {/* Filter dan Search */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className="flex flex-col gap-2 w-full">
               <Input
                 placeholder="🔍 Cari nama murid atau kelas..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-72 h-11 text-base bg-white"
+                className="w-full h-9 sm:h-11 text-sm sm:text-base bg-white"
               />
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full sm:w-48 h-11 bg-white text-base">
+                <SelectTrigger className="w-full h-9 sm:h-11 bg-white text-sm sm:text-base">
                   <SelectValue placeholder="Semua Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -971,51 +971,51 @@ export function VisitManagement({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 sm:pt-6 px-2 sm:px-6">
           {/* Statistics Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-yellow-50 p-5 rounded-xl border border-yellow-200 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-yellow-600" />
-                <span className="font-semibold text-yellow-800">Menunggu Anda</span>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8">
+            <div className="bg-yellow-50 p-2 sm:p-5 rounded-xl border border-yellow-200 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Clock className="h-3 w-3 sm:h-5 sm:w-5 text-yellow-600 shrink-0" />
+                <span className="font-semibold text-yellow-800 text-[10px] sm:text-sm leading-tight">Menunggu</span>
               </div>
-              <p className="text-3xl font-black text-yellow-600 mt-3">
+              <p className="text-xl sm:text-3xl font-black text-yellow-600 mt-1 sm:mt-3">
                 {visits.filter((v) => v.status === "pending").length}
               </p>
             </div>
-            <div className="bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center gap-2">
-                <Forward className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold text-blue-800">Dialihkan</span>
+            <div className="bg-blue-50 p-2 sm:p-5 rounded-xl border border-blue-200 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Forward className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600 shrink-0" />
+                <span className="font-semibold text-blue-800 text-[10px] sm:text-sm leading-tight">Dialihkan</span>
               </div>
-              <p className="text-3xl font-black text-blue-600 mt-3">
+              <p className="text-xl sm:text-3xl font-black text-blue-600 mt-1 sm:mt-3">
                 {visits.filter((v) => v.status === "forwarded").length}
               </p>
             </div>
-            <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-200 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-indigo-600" />
-                <span className="font-semibold text-indigo-800">Disetujui</span>
+            <div className="bg-indigo-50 p-2 sm:p-5 rounded-xl border border-indigo-200 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <CheckCircle className="h-3 w-3 sm:h-5 sm:w-5 text-indigo-600 shrink-0" />
+                <span className="font-semibold text-indigo-800 text-[10px] sm:text-sm leading-tight">Disetujui</span>
               </div>
-              <p className="text-3xl font-black text-indigo-600 mt-3">
+              <p className="text-xl sm:text-3xl font-black text-indigo-600 mt-1 sm:mt-3">
                 {visits.filter((v) => v.status === "approved").length}
               </p>
             </div>
-            <div className="bg-green-50 p-5 rounded-xl border border-green-200 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <span className="font-semibold text-green-800">Selesai</span>
+            <div className="bg-green-50 p-2 sm:p-5 rounded-xl border border-green-200 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <CheckCircle className="h-3 w-3 sm:h-5 sm:w-5 text-green-600 shrink-0" />
+                <span className="font-semibold text-green-800 text-[10px] sm:text-sm leading-tight">Selesai</span>
               </div>
-              <p className="text-3xl font-black text-green-600 mt-3">
+              <p className="text-xl sm:text-3xl font-black text-green-600 mt-1 sm:mt-3">
                 {visits.filter((v) => v.status === "completed").length}
               </p>
             </div>
-            <div className="bg-red-50 p-5 rounded-xl border border-red-200 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center gap-2">
-                <XCircle className="h-5 w-5 text-red-600" />
-                <span className="font-semibold text-red-800">Dibatalkan</span>
+            <div className="bg-red-50 p-2 sm:p-5 rounded-xl border border-red-200 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <XCircle className="h-3 w-3 sm:h-5 sm:w-5 text-red-600 shrink-0" />
+                <span className="font-semibold text-red-800 text-[10px] sm:text-sm leading-tight">Batal</span>
               </div>
-              <p className="text-3xl font-black text-red-600 mt-3">
+              <p className="text-xl sm:text-3xl font-black text-red-600 mt-1 sm:mt-3">
                 {visits.filter((v) => v.status === "cancelled").length}
               </p>
             </div>
@@ -1366,8 +1366,8 @@ export function VisitManagement({
             return null;
           })()}
 
-          {/* Table */}
-          <div className="rounded-md border overflow-x-auto">
+          {/* Table — hidden on small screens */}
+          <div className="hidden sm:block rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
@@ -1449,6 +1449,50 @@ export function VisitManagement({
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          {/* Card list — visible only on small screens */}
+          <div className="sm:hidden space-y-3">
+            {filteredVisits.length === 0 ? (
+              <p className="text-center text-slate-500 py-8 text-sm">
+                {searchQuery || filterStatus !== "all"
+                  ? "Tidak ada data yang sesuai dengan filter"
+                  : "Belum ada data kunjungan"}
+              </p>
+            ) : (
+              filteredVisits.map((visit) => (
+                <div key={visit.id} className="border rounded-xl p-3 bg-white shadow-sm space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                          {(visit.studentName || "??").substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm truncate">{visit.studentName || "Tidak ada nama"}</p>
+                        <Badge variant="outline" className="text-[10px] mt-0.5">{typeof visit.class === 'object' ? (visit.class as any).name : visit.class}</Badge>
+                      </div>
+                    </div>
+                    {getStatusBadge(visit.status)}
+                  </div>
+                  <p className="text-xs text-slate-600 line-clamp-2 bg-slate-50 rounded p-2">{visit.reason}</p>
+                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(visit.visitDate).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {visit.visitTime}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {renderActionButtons(visit)}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Result Count */}
