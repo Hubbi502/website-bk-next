@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sahabat BK",
   description: "Sahabat BK - Platform Bimbingan & Konseling",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
