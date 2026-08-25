@@ -26,7 +26,7 @@ async function getLatestArticles() {
       take: 3,
     });
 
-    return articles.map((article) => ({
+    return articles.map((article: any) => ({
       id: article.id,
       title: article.title,
       excerpt: article.excerpt,

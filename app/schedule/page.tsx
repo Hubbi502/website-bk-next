@@ -704,6 +704,7 @@ const Schedule = () => {
       reason: "",
     });
     toast.success("Berhasil logout");
+    window.location.href = "/";
   };
 
   return (

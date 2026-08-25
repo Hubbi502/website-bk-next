@@ -76,7 +76,7 @@ export function DashboardLayout({
       title: "Logout Berhasil",
       description: "Anda telah keluar dari sistem",
     });
-    router.push("/login");
+    router.push("/");
   };
 
   const baseMenuItems = [
