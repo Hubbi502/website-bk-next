@@ -3,6 +3,8 @@
 import { useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import Logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -117,8 +119,8 @@ export function DashboardLayout({
         {/* Logo & Brand */}
         <div className="p-6 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-lg">
-              BK
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+              <Image src={Logo} alt="Sahabat BK" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <h2 className="font-bold text-lg">Admin Panel</h2>
