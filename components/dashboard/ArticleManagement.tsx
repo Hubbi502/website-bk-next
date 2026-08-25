@@ -404,7 +404,9 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
             </div>
             <Dialog open={isAddArticleOpen} onOpenChange={setIsAddArticleOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => {
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => {
                   setEditingArticle(null);
                   setArticleForm({ title: "", excerpt: "", content: "", image: "", category: "Mental Health", readTime: "5 min read", pdfUrl: "", pdfFileName: "" });
                   setImageFile(null);
@@ -739,7 +741,7 @@ export function ArticleManagement({ articles, loadArticles, adminData }: Article
                   <div className="flex flex-col gap-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      className="bg-amber-500 hover:bg-amber-600 text-white"
                       onClick={() => handleEditArticle(article)}
                     >
                       <Pencil className="h-4 w-4" />
