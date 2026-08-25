@@ -31,6 +31,7 @@ import { AdminManagement } from "@/components/dashboard/AdminManagement";
 import { StudentManagement } from "@/components/dashboard/StudentManagement";
 import { MajorManagement } from "@/components/dashboard/MajorManagement";
 import { ClassManagement } from "@/components/dashboard/ClassManagement";
+import { ProfileManagement } from "@/components/dashboard/ProfileManagement";
 import { isSuperAdmin } from "@/lib/permissions";
 
 interface Article {
@@ -52,7 +53,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [adminData, setAdminData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "articles" | "visits" | "admins" | "students" | "majors" | "classes"
+    "overview" | "articles" | "visits" | "admins" | "students" | "majors" | "classes" | "profile"
   >("overview");
   const [articles, setArticles] = useState<Article[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
@@ -412,6 +413,7 @@ const Dashboard = () => {
     { id: "students", label: "Kelola Siswa" },
     { id: "majors", label: "Kelola Jurusan" },
     { id: "classes", label: "Kelola Kelas" },
+    { id: "profile", label: "Profil Saya" },
   ];
 
   const currentPageTitle =
@@ -474,6 +476,10 @@ const Dashboard = () => {
 
       {activeTab === "classes" && isSuperAdmin(adminData) && (
         <ClassManagement />
+      )}
+
+      {activeTab === "profile" && (
+        <ProfileManagement />
       )}
     </DashboardLayout>
   );

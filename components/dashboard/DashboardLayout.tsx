@@ -35,7 +35,8 @@ interface DashboardLayoutProps {
     | "admins"
     | "students"
     | "majors"
-    | "classes";
+    | "classes"
+    | "profile";
   setActiveTab: (
     tab:
       | "overview"
@@ -44,7 +45,8 @@ interface DashboardLayoutProps {
       | "admins"
       | "students"
       | "majors"
-      | "classes",
+      | "classes"
+      | "profile",
   ) => void;
   articlesCount: number;
   pendingVisitsCount: number;
@@ -188,15 +190,17 @@ export function DashboardLayout({
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-slate-800 space-y-2">
-          <Link href="/dashboard/profile">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800"
-            >
-              <UserCircle className="h-5 w-5 mr-3" />
-              Profil Saya
-            </Button>
-          </Link>
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              activeTab === "profile"
+                ? "bg-blue-600 text-white shadow-lg"
+                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <UserCircle className="h-5 w-5" />
+            <span className="flex-1 text-left font-medium">Profil Saya</span>
+          </button>
           <Link href="/">
             <Button
               variant="ghost"
@@ -339,6 +343,17 @@ export function DashboardLayout({
               })}
             </nav>
             <div className="p-2 border-t border-slate-800 space-y-1">
+              <button
+                onClick={() => { setActiveTab("profile"); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm font-medium ${
+                  activeTab === "profile"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <UserCircle className="h-4 w-4" />
+                Profil Saya
+              </button>
               <Link href="/" onClick={() => setMobileMenuOpen(false)}>
                 <Button
                   variant="ghost"
